@@ -1,6 +1,6 @@
-{ config, pkgs, ... }: {
+{pkgs, ...}: {
   # Nix settings
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = ["nix-command" "flakes"];
   nix.settings.auto-optimise-store = true;
 
   # Locale
@@ -30,9 +30,9 @@
     noto-fonts-emoji
   ];
   fonts.fontconfig.defaultFonts = {
-    serif = [ "ComicShannsMono Nerd Font" ];
-    sansSerif = [ "ComicShannsMono Nerd Font" ];
-    monospace = [ "ComicShannsMono Nerd Font Mono" ];
-    emoji = [ "Noto Color Emoji" ];
+    serif = ["ComicShannsMono Nerd Font"];
+    sansSerif = ["ComicShannsMono Nerd Font"];
+    monospace = ["ComicShannsMono Nerd Font Mono"];
+    emoji = ["Noto Color Emoji"];
   };
 }

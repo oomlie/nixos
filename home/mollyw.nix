@@ -1,11 +1,10 @@
 {
   inputs,
   lib,
-  config,
   pkgs,
   ...
 }: {
-  imports = [ ];
+  imports = [];
 
   home = {
     username = "mollyw";
@@ -115,18 +114,28 @@
       enable = true;
       autosuggestion.enable = true;
       syntaxHighlighting.enable = true;
-      history = { size = 50000; ignoreDups = true; share = true; };
+      history = {
+        size = 50000;
+        ignoreDups = true;
+        share = true;
+      };
     };
     starship.enable = true;
 
     # Part J: direnv + nix-direnv
-    direnv = { enable = true; nix-direnv.enable = true; };
+    direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+    };
 
     # Part J: Shell QoL
     fzf.enable = true;
     zoxide.enable = true;
     bat.enable = true;
-    eza = { enable = true; icons = "auto"; };
+    eza = {
+      enable = true;
+      icons = "auto";
+    };
 
     # Part J: btop
     btop = {
@@ -151,11 +160,26 @@
   programs.plasma = {
     enable = true;
     fonts = {
-      general = { family = "ComicShannsMono Nerd Font"; pointSize = 10; };
-      fixedWidth = { family = "ComicShannsMono Nerd Font Mono"; pointSize = 10; };
-      toolbar = { family = "ComicShannsMono Nerd Font"; pointSize = 10; };
-      menu = { family = "ComicShannsMono Nerd Font"; pointSize = 10; };
-      windowTitle = { family = "ComicShannsMono Nerd Font"; pointSize = 10; };
+      general = {
+        family = "ComicShannsMono Nerd Font";
+        pointSize = 10;
+      };
+      fixedWidth = {
+        family = "ComicShannsMono Nerd Font Mono";
+        pointSize = 10;
+      };
+      toolbar = {
+        family = "ComicShannsMono Nerd Font";
+        pointSize = 10;
+      };
+      menu = {
+        family = "ComicShannsMono Nerd Font";
+        pointSize = 10;
+      };
+      windowTitle = {
+        family = "ComicShannsMono Nerd Font";
+        pointSize = 10;
+      };
     };
     workspace.wallpaper = "${../wallpapers/catppuccin-mocha.png}";
     configFile.kdeglobals.General.TerminalApplication = "ghostty";
@@ -168,7 +192,7 @@
   # opencode configuration with Kimi OAuth plugin
   xdg.configFile."opencode/opencode.json".text = builtins.toJSON {
     "$schema" = "https://opencode.ai/config.json";
-    plugin = [ "opencode-kimi-full" ];
+    plugin = ["opencode-kimi-full"];
     provider = {
       "kimi-for-coding-oauth" = {
         name = "Kimi For Coding (OAuth)";
@@ -182,16 +206,16 @@
             attachment = true;
             reasoning = true;
             modalities = {
-              input = [ "text" "image" ];
-              output = [ "text" ];
+              input = ["text" "image"];
+              output = ["text"];
             };
             options = {};
             variants = {
-              off = { reasoning_effort = "off"; };
-              auto = { reasoning_effort = "auto"; };
-              low = { reasoning_effort = "low"; };
-              medium = { reasoning_effort = "medium"; };
-              high = { reasoning_effort = "high"; };
+              off = {reasoning_effort = "off";};
+              auto = {reasoning_effort = "auto";};
+              low = {reasoning_effort = "low";};
+              medium = {reasoning_effort = "medium";};
+              high = {reasoning_effort = "high";};
             };
           };
         };

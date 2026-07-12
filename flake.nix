@@ -36,9 +36,7 @@
     self,
     nixpkgs,
     home-manager,
-    agenic-journal,
     agenix,
-    firefox-addons,
     plasma-manager,
     treefmt-nix,
     ...
