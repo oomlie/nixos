@@ -8,9 +8,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     agenic-journal = {
-      # TODO: switch back to "github:oomlie/agenic-journal" once the
-      # flake branch below is merged into main (main has no flake.nix yet)
-      url = "github:oomlie/agenic-journal/claude/nixos-config-improvements-9l3kgy";
+      url = "github:oomlie/agenic-journal";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     agenix = {
