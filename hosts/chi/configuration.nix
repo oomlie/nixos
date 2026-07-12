@@ -1,5 +1,9 @@
-{ config, pkgs, inputs, ... }: {
-  imports = [ ./hardware-configuration.nix ];
+{
+  pkgs,
+  inputs,
+  ...
+}: {
+  imports = [./hardware-configuration.nix];
 
   # Bootloader
   boot.loader.systemd-boot.enable = true;
@@ -15,7 +19,10 @@
   services.xserver.enable = true;
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
-  services.xserver.xkb = { layout = "us"; variant = ""; };
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "";
+  };
 
   # Printing
   services.printing.enable = true;
@@ -35,7 +42,7 @@
     isNormalUser = true;
     description = "Molly Wunderlich";
     shell = pkgs.zsh;
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = ["networkmanager" "wheel"];
     packages = with pkgs; [
       # Add user-specific packages here
     ];
