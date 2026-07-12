@@ -9,13 +9,13 @@
 
 2. Clone the repo:
    ```bash
-   git clone https://tangled.org/did:plc:n3llrvji3acb32lmu424ujqy nixos-config
+   git clone https://github.com/oomlie/nixos nixos-config
    cd nixos-config
    ```
 
 3. If the target hardware differs from `chi`, regenerate the hardware config:
    ```bash
-   sudo nixos-generate-config --root /mnt --show-hardware-config > hardware-configuration.nix
+   sudo nixos-generate-config --root /mnt --show-hardware-config > hosts/chi/hardware-configuration.nix
    ```
    On an already-running NixOS system, you can also copy the generated file from `/etc/nixos/hardware-configuration.nix`.
 
@@ -58,13 +58,12 @@ Instead of a generic OpenAI-compatible provider, it uses Kimi's OAuth device flo
 
 This NixOS config handles steps 1 and 3 automatically:
 
-- `configuration.nix` installs `pkgs.opencode` as a system package.
-- `home.nix` writes `~/.config/opencode/opencode.json` with the `opencode-kimi-full`
+- `hosts/chi/configuration.nix` installs `pkgs.opencode` as a system package.
+- `home/mollyw.nix` writes `~/.config/opencode/opencode.json` with the `opencode-kimi-full`
   plugin entry and the full `kimi-for-coding-oauth` provider block.
 - A Home Manager activation script runs `opencode plugin opencode-kimi-full --global`
   on each activation, so the plugin is installed without manual intervention.
-  The script is best-effort (`|| true`) so network issues during rebuild do not
-  break the system build.
+  The script is best-effort so network issues during rebuild do not break the system build.
 
 After running `sudo nixos-rebuild switch --flake .#chi`, the only remaining step is:
 
@@ -103,7 +102,7 @@ MIT
 
 ## Development environment
 
-The user environment is managed by Home Manager in `home.nix`.
+The user environment is managed by Home Manager in `home/mollyw.nix`.
 
 ### Editor: Helix
 
@@ -162,29 +161,16 @@ The `@` character in the upstream filenames is avoided by renaming the downloads
 
 ---
 
-## chi / framework 12 — notes to expand later
+## Post-rebuild manual steps
 
-This section is a placeholder for things to document as the setup settles.
+### Firefox profile cleanup
 
-### hardware
+After the first rebuild with the declarative Firefox profile active, consolidate or remove any old orphaned profile directories under `~/.mozilla/firewall/` on `chi` itself.
 
-- Framework 12 laptop specs (CPU, RAM, storage, display, expansion cards)
-- What works out of the box under NixOS
-- Any manual tweaks needed for sleep, suspend, power profiles, etc.
+### nh flake path
 
-### performance with apps and gaming
+Confirm the `programs.nh.flake` path in `hosts/chi/configuration.nix` matches where this repo is cloned on `chi` (default: `/home/mollyw/nixos`).
 
-- General desktop smoothness under KDE Plasma 6
-- Specific games and how they run
-  - Team Fortress 2: currently needs a config to run well
-- Emulators / Proton / native Linux games worth noting
+### Fonts
 
-### current difficulties (assumed temporary)
-
-- TF2 performance without a config
-- Any other apps or games that need workarounds at time of writing
-- Things likely to improve with driver/kernel/proton updates
-
-### misc
-
-- Anything else worth remembering about this machine's NixOS setup
+ComicShannsMono Nerd Font sizes in Plasma's small UI chrome (panel, menu) may need tweaking on the real laptop — the point sizes set in `home/mollyw.nix` are a starting point.
