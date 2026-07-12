@@ -161,6 +161,10 @@
     configFile.kdeglobals.General.TerminalApplication = "ghostty";
   };
 
+  # btop looks up color_theme by name in ~/.config/btop/themes — the theme
+  # isn't shipped with btop itself, so install the official catppuccin file
+  xdg.configFile."btop/themes/catppuccin_mocha.theme".source = ./themes/btop-catppuccin-mocha.theme;
+
   # opencode configuration with Kimi OAuth plugin
   xdg.configFile."opencode/opencode.json".text = builtins.toJSON {
     "$schema" = "https://opencode.ai/config.json";
