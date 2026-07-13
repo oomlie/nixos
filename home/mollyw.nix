@@ -112,6 +112,9 @@
           "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
           "extensions.pocket.enabled" = false;
           "browser.toolbars.bookmarks.visibility" = "always";
+          "font.name.monospace.x-western" = "ComicShannsMono Nerd Font Mono";
+          "font.name.sans-serif.x-western" = "ComicShannsMono Nerd Font";
+          "font.name.serif.x-western" = "ComicShannsMono Nerd Font";
         };
         extensions.packages = [
           inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system}.ublock-origin
@@ -410,6 +413,24 @@
   stylix = {
     enable = true;
     image = ../wallpapers/dogg.jpg;
+    fonts = {
+      serif = {
+        package = pkgs.nerd-fonts.comic-shanns-mono;
+        name = "ComicShannsMono Nerd Font";
+      };
+      sansSerif = {
+        package = pkgs.nerd-fonts.comic-shanns-mono;
+        name = "ComicShannsMono Nerd Font";
+      };
+      monospace = {
+        package = pkgs.nerd-fonts.comic-shanns-mono;
+        name = "ComicShannsMono Nerd Font Mono";
+      };
+      emoji = {
+        package = pkgs.noto-fonts-color-emoji;
+        name = "Noto Color Emoji";
+      };
+    };
     targets = {
       helix.enable = true;
       foot.enable = true;
