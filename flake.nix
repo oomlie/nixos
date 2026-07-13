@@ -53,7 +53,7 @@
             home-manager.backupFileExtension = "hm-backup";
             home-manager.extraSpecialArgs = {inherit inputs;};
             home-manager.sharedModules = [plasma-manager.homeModules.plasma-manager];
-            home-manager.users.mollyw = import ./home/mollyw.nix;
+            home-manager.users.mollyw = import ./home/mollyw;
           }
         ];
       };
