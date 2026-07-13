@@ -11,10 +11,6 @@
     homeDirectory = "/home/mollyw";
   };
 
-  home.packages = [
-    inputs.agenic-journal.packages.${pkgs.stdenv.hostPlatform.system}.default
-  ];
-
   programs = {
     home-manager.enable = true;
 
