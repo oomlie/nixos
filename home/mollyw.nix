@@ -161,6 +161,10 @@
       settings = {
         main = {
           font = lib.mkForce "ComicShannsMono Nerd Font Mono:size=11";
+          pad = "8x8";
+        };
+        colors = {
+          alpha = 0.92;
         };
       };
     };
