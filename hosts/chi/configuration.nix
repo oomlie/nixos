@@ -24,6 +24,15 @@
     variant = "";
   };
 
+  # Niri — scrollable-tiling Wayland compositor, offered alongside Plasma
+  # as an extra session in the SDDM login list (useNautilus = false: use the
+  # generic GTK file chooser portal instead of pulling in Nautilus).
+  programs.niri.enable = true;
+  programs.niri.useNautilus = false;
+
+  # DankMaterialShell — bar/panel/lock-screen/notifications shell for niri
+  programs.dms-shell.enable = true;
+
   # Printing
   services.printing.enable = true;
 

@@ -15,6 +15,13 @@ secrets/            — agenix secrets scaffolding (empty, for future use)
 wallpapers/         — catppuccin-mocha gradient wallpaper
 ```
 
+## desktop sessions
+
+SDDM offers two sessions: **Plasma (Wayland)**, the default, and **Niri**, a
+scrollable-tiling compositor paired with DankMaterialShell (bar/panel/lock
+screen, `programs.dms-shell`) and vicinae (launcher + clipboard history).
+Both are independent — picking one at login doesn't affect the other.
+
 ## notes
 
 See [`notes.md`](notes.md) for setup details, the opencode + kimi integration, and other misc notes about this machine.

@@ -16,6 +16,8 @@
     ./programs/plasma.nix
     ./programs/opencode.nix
     ./programs/discord.nix
+    ./programs/niri
+    ./programs/vicinae.nix
   ];
 
   home = {

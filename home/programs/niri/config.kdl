@@ -1,0 +1,184 @@
+// niri configuration
+// Reference: https://github.com/YaLTeR/niri/wiki/Configuration:-Overview
+
+// KDE/GTK portal file-picker dialogs — open as floating, not fullscreen
+window-rule {
+    match app-id="(xdg-desktop-portal)(.*)"
+    default-column-width { proportion 0.5; }
+    default-window-height { proportion 0.8; }
+    open-floating true
+    open-fullscreen false
+}
+
+// Open DankMaterialShell windows as floating by default
+window-rule {
+    match app-id=r#"org.quickshell$"#
+    open-floating true
+}
+
+// ── Startup ──────────────────────────────────────────────────────────────────
+
+// Clipboard history for vicinae
+spawn-at-startup "bash" "-c" "wl-paste --watch cliphist store &"
+
+// XWayland support for X11-only apps (Steam, some games)
+spawn-at-startup "xwayland-satellite"
+
+// KDE daemon — keeps default-application/theming/trash integration working
+// for KDE apps (dolphin, okular, ...) shared with the Plasma session
+spawn-at-startup "kded6"
+
+// ── Input ─────────────────────────────────────────────────────────────────────
+
+input {
+    keyboard {
+        xkb {
+            layout "us"
+        }
+    }
+
+    touchpad {
+        tap
+        natural-scroll
+    }
+}
+
+// ── Outputs ───────────────────────────────────────────────────────────────────
+// Niri auto-detects monitors when this section is empty.
+// Uncomment and adjust once you know the output name (`niri msg outputs`).
+//
+// output "eDP-1" {
+//     scale 1.5
+// }
+
+// ── Layout ────────────────────────────────────────────────────────────────────
+
+layout {
+    gaps 4
+
+    center-focused-column "on-overflow"
+    always-center-single-column
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.49999
+        proportion 0.66667
+    }
+
+    default-column-width { proportion 0.49999; }
+
+    focus-ring {
+        width 2
+        active-color "#89b4fa"
+    }
+}
+
+// ── Visuals ───────────────────────────────────────────────────────────────────
+window-rule {
+    geometry-corner-radius 10
+    clip-to-geometry true
+}
+
+screenshot-path "~/Pictures/Screenshots"
+
+// Remove this block entirely to disable animations.
+animations { }
+
+// ── Key Bindings ──────────────────────────────────────────────────────────────
+
+binds {
+    Mod+Shift+Slash allow-inhibiting=false { show-hotkey-overlay; }
+
+    // Applications
+    Mod+Return hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty"; }
+    Mod+Space  hotkey-overlay-title="Open a Launcher" { spawn "vicinae" "toggle"; }
+    Mod+Q      repeat=false { close-window; }
+    Mod+O      repeat=false { toggle-overview; }
+
+    // Screen lock
+    Mod+Shift+L hotkey-overlay-title="Lock Screen" { spawn "dms" "ipc" "call" "lock" "lock"; }
+
+    // Clipboard history (requires cliphist daemon running)
+    Mod+V hotkey-overlay-title="Clipboard History" { spawn "vicinae" "vicinae://extensions/vicinae/clipboard/history"; }
+
+    // Focus
+    Mod+A { focus-column-left-or-last; }
+    Mod+D { focus-column-right-or-first; }
+    Mod+S { focus-window-down; }
+    Mod+W { focus-window-up; }
+    Mod+Home { focus-column-first; }
+    Mod+End  { focus-column-last; }
+
+    // Move
+    Mod+Shift+A { move-column-left; }
+    Mod+Shift+D { move-column-right; }
+    Mod+Shift+S { move-window-down; }
+    Mod+Shift+W { move-window-up; }
+    Mod+Ctrl+Home { move-column-to-first; }
+    Mod+Ctrl+End  { move-column-to-last; }
+    Mod+Left { consume-or-expel-window-left; }
+    Mod+Right { consume-or-expel-window-right; }
+
+    // Mouse focus/moves
+    Mod+WheelScrollRight      { focus-column-right; }
+    Mod+WheelScrollLeft       { focus-column-left; }
+    Mod+Ctrl+WheelScrollRight { move-column-right; }
+    Mod+Ctrl+WheelScrollLeft  { move-column-left; }
+
+    Mod+Shift+WheelScrollDown      { focus-column-right; }
+    Mod+Shift+WheelScrollUp        { focus-column-left; }
+    Mod+Ctrl+Shift+WheelScrollDown { move-column-right; }
+    Mod+Ctrl+Shift+WheelScrollUp   { move-column-left; }
+
+    // Workspaces
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+Up { focus-workspace-up; }
+    Mod+Down { focus-workspace-down; }
+
+    Mod+Shift+1 { move-window-to-workspace 1; }
+    Mod+Shift+2 { move-window-to-workspace 2; }
+    Mod+Shift+3 { move-window-to-workspace 3; }
+    Mod+Shift+4 { move-window-to-workspace 4; }
+    Mod+Shift+5 { move-window-to-workspace 5; }
+    Mod+Shift+Up { move-column-to-workspace-up; }
+    Mod+Shift+Down { move-column-to-workspace-down; }
+
+    // Sizing
+    Mod+F       { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+R { switch-preset-column-width; }
+    Mod+Shift+R { switch-preset-window-height; }
+    Mod+Ctrl+R { reset-window-height; }
+    Mod+Ctrl+F { expand-column-to-available-width; }
+
+    Mod+C { center-column; }
+    Mod+Ctrl+C { center-visible-columns; }
+
+    // Screenshots (saved to ~/Pictures/Screenshots)
+    Print      { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print  { screenshot-window; }
+
+    // Audio fn keys (wpctl is part of wireplumber, already available via PipeWire)
+    XF86AudioRaiseVolume  allow-when-locked=true { spawn "wpctl" "set-volume" "-l" "1.5" "@DEFAULT_AUDIO_SINK@" "5%+"; }
+    XF86AudioLowerVolume  allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-"; }
+    XF86AudioMute         allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+    XF86AudioMicMute      allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle"; }
+    XF86AudioPlay         allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioPrev         allow-when-locked=true { spawn "playerctl" "previous"; }
+    XF86AudioNext         allow-when-locked=true { spawn "playerctl" "next"; }
+
+    // Brightness fn keys (requires brightnessctl)
+    XF86MonBrightnessUp   allow-when-locked=true { spawn "brightnessctl" "set" "+10%"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "10%-"; }
+
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+
+    // Management
+    Ctrl+Alt+Delete { quit; }
+    Mod+Shift+P { power-off-monitors; }
+}
