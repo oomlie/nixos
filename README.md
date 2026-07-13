@@ -9,7 +9,8 @@ It's widely vibe coded togther, but seems to be stable. I'm not doing anything t
 ```
 hosts/chi/          — host-specific config (chi, a Framework 12 laptop)
 modules/common.nix  — shared settings (locale, firewall, fonts, nix settings)
-home/mollyw.nix     — Home Manager config (shell, editors, apps, dotfiles)
+home/mollyw.nix     — Home Manager entry point (imports + user/state settings)
+home/programs/      — one file per Home Manager program (helix, git, discord, ...)
 secrets/            — agenix secrets scaffolding (empty, for future use)
 wallpapers/         — catppuccin-mocha gradient wallpaper
 ```
