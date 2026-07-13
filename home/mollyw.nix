@@ -163,8 +163,11 @@
           font = lib.mkForce "ComicShannsMono Nerd Font Mono:size=11";
           pad = "8x8";
         };
-        colors = {
-          alpha = 0.92;
+        "colors-dark" = {
+          alpha = lib.mkForce 0.92;
+        };
+        "colors-light" = {
+          alpha = lib.mkForce 0.92;
         };
       };
     };
