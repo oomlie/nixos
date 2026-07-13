@@ -57,7 +57,6 @@
     proton-vpn
     proton-pass
     signal-desktop
-    discord
     protonmail-desktop
     proton-authenticator
     opencode

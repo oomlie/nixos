@@ -3,6 +3,7 @@
 {
   imports = [
     # Desktop programs
+    ./programs/discord.nix
     ./programs/firefox.nix
     ./programs/ghostty.nix
     ./programs/plasma.nix
