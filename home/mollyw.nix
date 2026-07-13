@@ -6,9 +6,26 @@
 }: {
   imports = [];
 
+  nixpkgs = {
+    config.allowUnfree = true;
+    overlays = [inputs.niri.overlays.niri];
+  };
+
   home = {
     username = "mollyw";
     homeDirectory = "/home/mollyw";
+
+    packages = with pkgs; [
+      # Niri ecosystem
+      fuzzel
+      mako
+      swaylock
+      xwayland-satellite
+      swaybg
+      brightnessctl
+      playerctl
+      equibop
+    ];
   };
 
   programs = {
@@ -18,7 +35,6 @@
       enable = true;
       defaultEditor = true;
       settings = {
-        theme = "catppuccin_mocha";
         editor.line-number = "relative";
       };
     };
@@ -51,7 +67,6 @@
           usernamehw.errorlens
           gruntfuggly.todo-tree
           aaron-bond.better-comments
-          catppuccin.catppuccin-vsc
           (pkgs.vscode-utils.buildVscodeExtension {
             pname = "kimi-code";
             version = "0.5.10";
@@ -78,8 +93,7 @@
           })
         ];
         userSettings = {
-          "workbench.colorTheme" = "Catppuccin Mocha";
-          "editor.fontFamily" = "'ComicShannsMono Nerd Font Mono'";
+          "editor.fontFamily" = lib.mkForce "'ComicShannsMono Nerd Font Mono'";
         };
       };
     };
@@ -136,54 +150,19 @@
     # Part J: btop
     btop = {
       enable = true;
-      settings = {
-        color_theme = "catppuccin_mocha";
-      };
     };
 
-    # Part J: Ghostty
-    ghostty = {
+    # Part J: Foot terminal
+    foot = {
       enable = true;
       settings = {
-        theme = "catppuccin-mocha";
-        font-family = "ComicShannsMono Nerd Font Mono";
-        font-size = 11;
+        main = {
+          font = lib.mkForce "ComicShannsMono Nerd Font Mono:size=11";
+        };
       };
     };
   };
 
-  # Part I: Plasma fonts (plasma-manager)
-  programs.plasma = {
-    enable = true;
-    fonts = {
-      general = {
-        family = "ComicShannsMono Nerd Font";
-        pointSize = 10;
-      };
-      fixedWidth = {
-        family = "ComicShannsMono Nerd Font Mono";
-        pointSize = 10;
-      };
-      toolbar = {
-        family = "ComicShannsMono Nerd Font";
-        pointSize = 10;
-      };
-      menu = {
-        family = "ComicShannsMono Nerd Font";
-        pointSize = 10;
-      };
-      windowTitle = {
-        family = "ComicShannsMono Nerd Font";
-        pointSize = 10;
-      };
-    };
-    workspace.wallpaper = "${../wallpapers/catppuccin-mocha.png}";
-    configFile.kdeglobals.General.TerminalApplication = "ghostty";
-  };
-
-  # btop looks up color_theme by name in ~/.config/btop/themes — the theme
-  # isn't shipped with btop itself, so install the official catppuccin file
-  xdg.configFile."btop/themes/catppuccin_mocha.theme".source = ./themes/btop-catppuccin-mocha.theme;
 
   # opencode configuration with Kimi OAuth plugin
   xdg.configFile."opencode/opencode.json".text = builtins.toJSON {
@@ -226,6 +205,225 @@
       opencode plugin opencode-kimi-full --global || echo "warning: opencode-kimi-full install failed, run manually later"
     fi
   '';
+
+  # Niri compositor configuration
+  programs.niri.settings = {
+    input = {
+      keyboard.xkb.layout = "us";
+      touchpad = {
+        tap = true;
+        natural-scroll = true;
+      };
+    };
+
+    layout = {
+      gaps = 12;
+      center-focused-column = "never";
+      default-column-width.proportion = 0.5;
+      focus-ring = {
+        width = 4;
+        active.color = "#89b4fa";
+        inactive.color = "#45475a";
+      };
+      border.enable = false;
+    };
+
+    spawn-at-startup = [
+      { argv = [ "swaybg" "--image" "/home/mollyw/nixos/wallpapers/dogg.jpg" ]; }
+      { argv = [ "mako" ]; }
+      { argv = [ "xwayland-satellite" ]; }
+    ];
+
+    screenshot-path = "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png";
+
+    binds = {
+      "Mod+Shift+Slash".action.show-hotkey-overlay = [];
+
+      "Mod+Return" = {
+        hotkey-overlay.title = "Open Terminal: foot";
+        action.spawn = "foot";
+      };
+      "Mod+D" = {
+        hotkey-overlay.title = "Run Application: fuzzel";
+        action.spawn = "fuzzel";
+      };
+      "Super+Alt+L" = {
+        hotkey-overlay.title = "Lock Screen: swaylock";
+        action.spawn = "swaylock";
+      };
+
+      "Mod+Q" = {
+        repeat = false;
+        action.close-window = [];
+      };
+
+      "Mod+Left".action.focus-column-left = [];
+      "Mod+Down".action.focus-window-down = [];
+      "Mod+Up".action.focus-window-up = [];
+      "Mod+Right".action.focus-column-right = [];
+      "Mod+H".action.focus-column-left = [];
+      "Mod+J".action.focus-window-down = [];
+      "Mod+K".action.focus-window-up = [];
+      "Mod+L".action.focus-column-right = [];
+
+      "Mod+Ctrl+Left".action.move-column-left = [];
+      "Mod+Ctrl+Down".action.move-window-down = [];
+      "Mod+Ctrl+Up".action.move-window-up = [];
+      "Mod+Ctrl+Right".action.move-column-right = [];
+      "Mod+Ctrl+H".action.move-column-left = [];
+      "Mod+Ctrl+J".action.move-window-down = [];
+      "Mod+Ctrl+K".action.move-window-up = [];
+      "Mod+Ctrl+L".action.move-column-right = [];
+
+      "Mod+Shift+Left".action.focus-monitor-left = [];
+      "Mod+Shift+Right".action.focus-monitor-right = [];
+
+      "Mod+Page_Down".action.focus-workspace-down = [];
+      "Mod+Page_Up".action.focus-workspace-up = [];
+      "Mod+Ctrl+Page_Down".action.move-column-to-workspace-down = [];
+      "Mod+Ctrl+Page_Up".action.move-column-to-workspace-up = [];
+
+      "Mod+1".action.focus-workspace = 1;
+      "Mod+2".action.focus-workspace = 2;
+      "Mod+3".action.focus-workspace = 3;
+      "Mod+4".action.focus-workspace = 4;
+      "Mod+5".action.focus-workspace = 5;
+      "Mod+6".action.focus-workspace = 6;
+      "Mod+7".action.focus-workspace = 7;
+      "Mod+8".action.focus-workspace = 8;
+      "Mod+9".action.focus-workspace = 9;
+      "Mod+Ctrl+1".action.move-column-to-workspace = 1;
+      "Mod+Ctrl+2".action.move-column-to-workspace = 2;
+      "Mod+Ctrl+3".action.move-column-to-workspace = 3;
+      "Mod+Ctrl+4".action.move-column-to-workspace = 4;
+      "Mod+Ctrl+5".action.move-column-to-workspace = 5;
+      "Mod+Ctrl+6".action.move-column-to-workspace = 6;
+      "Mod+Ctrl+7".action.move-column-to-workspace = 7;
+      "Mod+Ctrl+8".action.move-column-to-workspace = 8;
+      "Mod+Ctrl+9".action.move-column-to-workspace = 9;
+
+      "Mod+R".action.switch-preset-column-width = [];
+      "Mod+Shift+R".action.switch-preset-column-width-back = [];
+
+      "Mod+F".action.maximize-column = [];
+      "Mod+Shift+F".action.fullscreen-window = [];
+
+      "Mod+V".action.toggle-window-floating = [];
+      "Mod+Shift+V".action.switch-focus-between-floating-and-tiling = [];
+
+      "XF86AudioRaiseVolume" = {
+        allow-when-locked = true;
+        action.spawn-sh = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+ -l 1.0";
+      };
+      "XF86AudioLowerVolume" = {
+        allow-when-locked = true;
+        action.spawn-sh = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-";
+      };
+      "XF86AudioMute" = {
+        allow-when-locked = true;
+        action.spawn-sh = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+      };
+      "XF86AudioMicMute" = {
+        allow-when-locked = true;
+        action.spawn-sh = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
+      };
+
+      "XF86AudioPlay" = {
+        allow-when-locked = true;
+        action.spawn-sh = "playerctl play-pause";
+      };
+      "XF86AudioPause" = {
+        allow-when-locked = true;
+        action.spawn-sh = "playerctl play-pause";
+      };
+      "XF86AudioPrev" = {
+        allow-when-locked = true;
+        action.spawn-sh = "playerctl previous";
+      };
+      "XF86AudioNext" = {
+        allow-when-locked = true;
+        action.spawn-sh = "playerctl next";
+      };
+
+      "XF86MonBrightnessUp" = {
+        allow-when-locked = true;
+        action.spawn = [ "brightnessctl" "--class=backlight" "set" "+10%" ];
+      };
+      "XF86MonBrightnessDown" = {
+        allow-when-locked = true;
+        action.spawn = [ "brightnessctl" "--class=backlight" "set" "10%-" ];
+      };
+
+      "Print".action.screenshot = [];
+      "Ctrl+Print".action.screenshot-screen = [];
+      "Alt+Print".action.screenshot-window = [];
+
+      "Mod+Shift+E".action.quit = [];
+    };
+  };
+
+  # Waybar status bar for niri (styled by Stylix)
+  programs.waybar = {
+    enable = true;
+    systemd.enable = true;
+    settings.mainBar = {
+      layer = "top";
+      position = "top";
+      height = 34;
+      spacing = 4;
+      modules-left = ["niri/workspaces" "niri/window"];
+      modules-center = ["clock"];
+      modules-right = ["wireplumber" "battery" "network" "tray"];
+      "niri/workspaces" = {};
+      "niri/window" = {
+        max-length = 50;
+      };
+      clock = {
+        format = "{:%Y-%m-%d %H:%M}";
+        tooltip-format = "<big>{:%Y %B}</big>\n<tt>{calendar}";
+      };
+      wireplumber = {
+        format = "{volume}%";
+        format-muted = "muted";
+        on-click = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+      };
+      battery = {
+        format = "{capacity}% {icon}";
+        format-icons = ["" "" "" "" ""];
+        states = {
+          warning = 30;
+          critical = 15;
+        };
+      };
+      network = {
+        format-wifi = "{essid} ({signalStrength}%)";
+        format-ethernet = "{ipaddr}/{cidr}";
+        format-disconnected = "offline";
+      };
+      tray = {
+        spacing = 10;
+      };
+    };
+  };
+
+  # Stylix auto-generated theme from wallpaper
+  stylix = {
+    enable = true;
+    image = ../wallpapers/dogg.jpg;
+    targets = {
+      helix.enable = true;
+      foot.enable = true;
+      btop.enable = true;
+      vscode.enable = true;
+      firefox = {
+        enable = true;
+        profileNames = ["mollyw"];
+      };
+      waybar.enable = true;
+      niri.enable = true;
+      gtk.enable = true;
+    };
+  };
 
   # stateVersion is a compatibility pin — do not change on every upgrade
   home.stateVersion = "26.05";

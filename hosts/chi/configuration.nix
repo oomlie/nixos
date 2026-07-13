@@ -5,6 +5,8 @@
 }: {
   imports = [./hardware-configuration.nix];
 
+  nixpkgs.overlays = [inputs.niri.overlays.niri];
+
   # Bootloader
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -15,14 +17,25 @@
   # Networking
   networking.networkmanager.enable = true;
 
-  # X11 and Desktop
-  services.xserver.enable = true;
-  services.displayManager.sddm.enable = true;
-  services.desktopManager.plasma6.enable = true;
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
+  # Greetd login manager
+  services.greetd = {
+    enable = true;
+    settings = {
+      default_session = {
+        command = "${pkgs.tuigreet}/bin/tuigreet --time --cmd niri-session";
+        user = "greeter";
+      };
+    };
   };
+
+  # Niri compositor
+  programs.niri = {
+    enable = true;
+    package = pkgs.niri-stable;
+  };
+
+  # XWayland support for X11 apps under niri
+  programs.xwayland.enable = true;
 
   # Printing
   services.printing.enable = true;
@@ -51,13 +64,22 @@
   programs.zsh.enable = true;
   programs.nix-ld.enable = true;
 
+  # doas alongside sudo for users in the wheel group
+  security.doas = {
+    enable = true;
+    extraRules = [{
+      groups = ["wheel"];
+      keepEnv = true;
+      persist = true;
+    }];
+  };
+
   # System packages
   environment.systemPackages = with pkgs; [
     vim
     proton-vpn
     proton-pass
     signal-desktop
-    discord
     protonmail-desktop
     proton-authenticator
     opencode
@@ -88,16 +110,6 @@
     remotePlay.openFirewall = true;
   };
   programs.gamemode.enable = true;
-
-  # KDE debloat — remove unused preinstalled Plasma apps
-  environment.plasma6.excludePackages = with pkgs.kdePackages; [
-    elisa
-    khelpcenter
-    kate
-    konsole
-    krdp
-    krfb
-  ];
 
   # Agenix secrets directory
   age.secretsDir = "/run/secrets";
