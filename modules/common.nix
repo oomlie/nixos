@@ -27,7 +27,7 @@
   # Fonts: Comic Mono Nerd Font system-wide
   fonts.packages = with pkgs; [
     nerd-fonts.comic-shanns-mono
-    noto-fonts-emoji
+    noto-fonts-color-emoji
   ];
   fonts.fontconfig.defaultFonts = {
     serif = ["ComicShannsMono Nerd Font"];
