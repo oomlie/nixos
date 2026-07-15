@@ -2,8 +2,137 @@
   inputs,
   lib,
   pkgs,
+  config,
   ...
-}: {
+}: let
+  khal-next-event = pkgs.writers.writePython3Bin "khal-next-event" {} ''
+    import datetime
+    import subprocess
+    import sys
+
+    KHAL = "${pkgs.khal}/bin/khal"
+    KHAL_FORMAT = "{start-long} | {title}"
+    START_FORMAT = "%Y %m %d %I:%M %p"
+
+
+    def parse_start(value):
+        try:
+            return datetime.datetime.strptime(value, START_FORMAT)
+        except ValueError:
+            return None
+
+
+    def relative(delta):
+        if delta.days >= 1:
+            return f"{delta.days}d {delta.seconds // 3600}h"
+        if delta.seconds >= 3600:
+            return f"{delta.seconds // 3600}h {(delta.seconds % 3600) // 60}m"
+        if delta.seconds >= 60:
+            return f"{delta.seconds // 60}m"
+        return "now"
+
+
+    def main():
+        try:
+            output = subprocess.check_output(
+                [KHAL, "list", "--format", KHAL_FORMAT, "now", "7d"],
+                text=True,
+                stderr=subprocess.DEVNULL,
+            )
+        except Exception:
+            return
+
+        if not output.strip():
+            return
+
+        now = datetime.datetime.now()
+        upcoming = []
+        for line in output.splitlines():
+            if " | " not in line:
+                continue
+            start_part, title = line.split(" | ", 1)
+            start = parse_start(start_part.strip())
+            if start is None:
+                continue
+            if start > now:
+                upcoming.append((start, title.strip()))
+
+        if not upcoming:
+            return
+
+        start, title = min(upcoming, key=lambda item: item[0])
+        sys.stdout.write(f"{title} in {relative(start - now)}")
+
+
+    if __name__ == "__main__":
+        main()
+  '';
+
+  niri-workspaces = pkgs.writers.writePython3Bin "niri-workspaces" {} ''
+    import subprocess
+    import sys
+
+
+    def main():
+        try:
+            output = subprocess.check_output(
+                ["niri", "msg", "workspaces"],
+                text=True,
+                stderr=subprocess.DEVNULL,
+            )
+        except Exception:
+            return
+
+        workspaces = []
+        active = None
+        for line in output.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("*"):
+                active = stripped[1:].strip()
+                workspaces.append(active)
+            elif stripped.isdigit():
+                workspaces.append(stripped)
+
+        parts = []
+        for ws in workspaces:
+            if ws == active:
+                parts.append(f"[{ws}]")
+            else:
+                parts.append(ws)
+
+        sys.stdout.write(" ".join(parts))
+
+
+    if __name__ == "__main__":
+        main()
+  '';
+
+  weather-dc = pkgs.writers.writePython3Bin "weather-dc" {} ''
+    import json
+    import urllib.request
+
+
+    def main():
+        try:
+            request = urllib.request.Request(
+                "https://wttr.in/Washington+DC?format=%c+%t&m",
+                headers={"User-Agent": "curl/8.0"},
+            )
+            with urllib.request.urlopen(request, timeout=10) as response:
+                text = response.read().decode().strip()
+            # wttr.in returns e.g. "⛅ +23°C"; strip the leading plus sign.
+            text = text.replace("+", "", 1)
+            result = {"text": text, "tooltip": "Washington, DC"}
+        except Exception:
+            result = {"text": "— °C", "tooltip": "Weather unavailable"}
+
+        sys.stdout.write(json.dumps(result))
+
+
+    if __name__ == "__main__":
+        main()
+  '';
+in {
   imports = [];
 
   nixpkgs = {
@@ -17,7 +146,6 @@
 
     packages = with pkgs; [
       # Niri ecosystem
-      fuzzel
       mako
       swaylock
       xwayland-satellite
@@ -25,8 +153,44 @@
       brightnessctl
       playerctl
       equibop
+
+      # Network management
+      networkmanagerapplet
+
+      # Terminal calendar app
+      khal
     ];
   };
+
+  # Local calendar storage for khal
+  home.file.".local/share/calendars/personal/.keep".text = "";
+
+  # khal configuration
+  xdg.configFile."khal/config".text = ''
+    [calendars]
+    [[personal]]
+    path = ~/.local/share/calendars/personal
+    color = dark blue
+
+    [locale]
+    timeformat = %I:%M %p
+    dateformat = %m %d
+    longdateformat = %Y %m %d
+    datetimeformat = %m %d %I:%M %p
+    longdatetimeformat = %Y %m %d %I:%M %p
+    local_timezone = America/New_York
+    default_timezone = America/New_York
+    firstweekday = 6
+
+    [default]
+    default_calendar = personal
+    highlight_event_days = true
+    timedelta = 7d
+
+    [view]
+    theme = dark
+    dynamic_days = true
+  '';
 
   programs = {
     home-manager.enable = true;
@@ -112,12 +276,14 @@
           "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
           "extensions.pocket.enabled" = false;
           "browser.toolbars.bookmarks.visibility" = "always";
-          "font.name.monospace.x-western" = "ComicShannsMono Nerd Font Mono";
-          "font.name.sans-serif.x-western" = "ComicShannsMono Nerd Font";
-          "font.name.serif.x-western" = "ComicShannsMono Nerd Font";
+          "browser.startup.homepage" = "about:blank";
+          # Use system default fonts from fontconfig/Stylix instead of
+          # hardcoding a font here.
         };
         extensions.packages = [
           inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system}.ublock-origin
+          inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system}.proton-pass
+          inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system}.vimium
         ];
       };
     };
@@ -134,6 +300,24 @@
       };
     };
     starship.enable = true;
+
+    # Application launcher (replaces fuzzel)
+    vicinae = {
+      enable = true;
+      systemd = {
+        enable = true;
+        autoStart = true;
+      };
+      settings = {
+        close_on_focus_loss = true;
+        pop_to_root_on_close = true;
+        launcher_window = {
+          layer_shell = {
+            enabled = true;
+          };
+        };
+      };
+    };
 
     # Part J: direnv + nix-direnv
     direnv = {
@@ -163,6 +347,9 @@
           font = lib.mkForce "ComicShannsMono Nerd Font Mono:size=11";
           pad = "8x8";
         };
+        csd = {
+          preferred = "none";
+        };
         "colors-dark" = {
           alpha = lib.mkForce 0.92;
         };
@@ -172,7 +359,6 @@
       };
     };
   };
-
 
   # opencode configuration with Kimi OAuth plugin
   xdg.configFile."opencode/opencode.json".text = builtins.toJSON {
@@ -232,16 +418,16 @@
       default-column-width.proportion = 0.5;
       focus-ring = {
         width = 4;
-        active.color = "#89b4fa";
-        inactive.color = "#45475a";
+        active.color = "#${config.lib.stylix.colors.base0D}";
+        inactive.color = "#${config.lib.stylix.colors.base03}";
       };
       border.enable = false;
     };
 
     spawn-at-startup = [
-      { argv = [ "swaybg" "--image" "/home/mollyw/nixos/wallpapers/dogg.jpg" ]; }
-      { argv = [ "mako" ]; }
-      { argv = [ "xwayland-satellite" ]; }
+      {argv = ["swaybg" "--image" "/home/mollyw/nixos/wallpapers/wp2002041.jpg"];}
+      {argv = ["mako"];}
+      {argv = ["xwayland-satellite"];}
     ];
 
     screenshot-path = "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png";
@@ -254,8 +440,12 @@
         action.spawn = "foot";
       };
       "Mod+D" = {
-        hotkey-overlay.title = "Run Application: fuzzel";
-        action.spawn = "fuzzel";
+        hotkey-overlay.title = "Run Application: vicinae";
+        action.spawn = ["vicinae" "vicinae://toggle"];
+      };
+      "Mod+Shift+W" = {
+        hotkey-overlay.title = "Wi-Fi Networks: nmtui";
+        action.spawn = ["foot" "-e" "nmtui"];
       };
       "Super+Alt+L" = {
         hotkey-overlay.title = "Lock Screen: swaylock";
@@ -357,11 +547,11 @@
 
       "XF86MonBrightnessUp" = {
         allow-when-locked = true;
-        action.spawn = [ "brightnessctl" "--class=backlight" "set" "+10%" ];
+        action.spawn = ["brightnessctl" "--class=backlight" "set" "+10%"];
       };
       "XF86MonBrightnessDown" = {
         allow-when-locked = true;
-        action.spawn = [ "brightnessctl" "--class=backlight" "set" "10%-" ];
+        action.spawn = ["brightnessctl" "--class=backlight" "set" "10%-"];
       };
 
       "Print".action.screenshot = [];
@@ -379,39 +569,61 @@
     settings.mainBar = {
       layer = "top";
       position = "top";
-      height = 34;
+      height = 18;
       spacing = 4;
-      modules-left = ["niri/workspaces" "niri/window"];
-      modules-center = ["clock"];
-      modules-right = ["wireplumber" "battery" "network" "tray"];
-      "niri/workspaces" = {};
+      modules-left = ["custom/workspaces" "niri/window"];
+      modules-center = ["clock" "custom/khal"];
+      modules-right = ["wireplumber" "battery" "custom/weather" "tray"];
+      "custom/workspaces" = {
+        format = "{}";
+        interval = 0.5;
+        exec = "${niri-workspaces}/bin/niri-workspaces";
+        "on-scroll-up" = "niri msg action focus-workspace-up";
+        "on-scroll-down" = "niri msg action focus-workspace-down";
+      };
       "niri/window" = {
         max-length = 50;
       };
       clock = {
-        format = "{:%Y-%m-%d %H:%M}";
-        tooltip-format = "<big>{:%Y %B}</big>\n<tt>{calendar}";
+        format = "{:%m/%d %I:%M %p}";
+        tooltip-format = "<big>{:%A, %B %d}</big>\n{calendar}";
+        on-click = "foot -e ikhal";
       };
       wireplumber = {
-        format = "{volume}%";
-        format-muted = "muted";
+        format = "{icon} {volume}%";
+        format-muted = "󰖁 muted";
+        format-icons = {
+          default = ["󰕿" "󰖀" "󰕾"];
+        };
         on-click = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
       };
       battery = {
-        format = "{capacity}% {icon}";
-        format-icons = ["" "" "" "" ""];
+        format = "{icon} {capacity}%";
+        format-charging = "󰂄 {capacity}%";
+        format-plugged = "󰚥 {capacity}%";
+        format-icons = ["󰁺" "󰁻" "󰁼" "󰁽" "󰁾" "󰁿" "󰂀" "󰂁" "󰂂" "󰁹"];
         states = {
           warning = 30;
           critical = 15;
         };
       };
-      network = {
-        format-wifi = "{essid} ({signalStrength}%)";
-        format-ethernet = "{ipaddr}/{cidr}";
-        format-disconnected = "offline";
-      };
       tray = {
         spacing = 10;
+      };
+      "custom/weather" = {
+        format = "{}";
+        exec = "${weather-dc}/bin/weather-dc";
+        interval = 600;
+        return-type = "json";
+        tooltip = true;
+      };
+      "custom/khal" = {
+        format = "{}";
+        exec = "${khal-next-event}/bin/khal-next-event";
+        interval = 60;
+        tooltip = true;
+        tooltip-format = "Next upcoming event from khal";
+        on-click = "foot -e ikhal";
       };
     };
   };
@@ -419,7 +631,8 @@
   # Stylix auto-generated theme from wallpaper
   stylix = {
     enable = true;
-    image = ../wallpapers/dogg.jpg;
+    polarity = "dark";
+    image = ../wallpapers/wp2002041.jpg;
     fonts = {
       serif = {
         package = pkgs.nerd-fonts.comic-shanns-mono;
