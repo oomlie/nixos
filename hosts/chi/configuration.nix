@@ -50,6 +50,11 @@
     pulse.enable = true;
   };
 
+  # Bluetooth
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = true;
+  services.blueman.enable = true;
+
   # User account
   users.users.mollyw = {
     isNormalUser = true;
@@ -67,11 +72,13 @@
   # doas alongside sudo for users in the wheel group
   security.doas = {
     enable = true;
-    extraRules = [{
-      groups = ["wheel"];
-      keepEnv = true;
-      persist = true;
-    }];
+    extraRules = [
+      {
+        groups = ["wheel"];
+        keepEnv = true;
+        persist = true;
+      }
+    ];
   };
 
   # System packages
