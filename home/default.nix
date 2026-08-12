@@ -9,6 +9,7 @@
     ./opencode.nix
     ./scripts.nix
     ./shell.nix
+    ./swayidle.nix
     ./stylix.nix
     ./tablet.nix
     ./ironbar.nix

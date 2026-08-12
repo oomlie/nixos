@@ -9,12 +9,21 @@
       touchpad = {
         tap = true;
         natural-scroll = true;
+        dwt = true;
+        click-method = "clickfinger";
       };
     };
 
     layout = {
       gaps = 12;
       center-focused-column = "never";
+      always-center-single-column = true;
+      preset-column-widths = [
+        {proportion = 1.0 / 3.0;}
+        {proportion = 0.5;}
+        {proportion = 2.0 / 3.0;}
+        {proportion = 1.0;}
+      ];
       default-column-width.proportion = 0.5;
       focus-ring = {
         width = 4;
@@ -25,6 +34,22 @@
     };
 
     window-rules = [
+      {
+        matches = [
+          {
+            app-id = "firefox$";
+            title = "^Picture-in-Picture$";
+          }
+        ];
+        open-floating = true;
+        default-column-width.fixed = 480;
+        default-window-height.fixed = 270;
+        default-floating-position = {
+          x = 24;
+          y = 24;
+          relative-to = "bottom-right";
+        };
+      }
       {
         matches = [{app-id = "net-runelite-launcher-Launcher";}];
         open-floating = true;
@@ -66,6 +91,8 @@
         action.spawn = ["foot" "-e" "nmtui"];
       };
       "Super+Alt+L" = {
+        repeat = false;
+        allow-inhibiting = false;
         hotkey-overlay.title = "Lock Screen: swaylock";
         action.spawn = "swaylock";
       };
@@ -123,11 +150,29 @@
       "Mod+R".action.switch-preset-column-width = [];
       "Mod+Shift+R".action.switch-preset-column-width-back = [];
 
+      "Mod+Comma".action.consume-window-into-column = [];
+      "Mod+Period".action.expel-window-from-column = [];
+      "Mod+BracketLeft".action.consume-or-expel-window-left = [];
+      "Mod+BracketRight".action.consume-or-expel-window-right = [];
+
       "Mod+F".action.maximize-column = [];
       "Mod+Shift+F".action.fullscreen-window = [];
+      "Mod+C".action.center-column = [];
+      "Mod+W".action.toggle-column-tabbed-display = [];
 
       "Mod+V".action.toggle-window-floating = [];
       "Mod+Shift+V".action.switch-focus-between-floating-and-tiling = [];
+
+      "Mod+Shift+P" = {
+        repeat = false;
+        hotkey-overlay.title = "Power Off Monitors";
+        action.power-off-monitors = [];
+      };
+      "Mod+Escape" = {
+        repeat = false;
+        hotkey-overlay.title = "Release Captured Shortcuts";
+        action.toggle-keyboard-shortcuts-inhibit = [];
+      };
 
       "XF86AudioRaiseVolume" = {
         allow-when-locked = true;
