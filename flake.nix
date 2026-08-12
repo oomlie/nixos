@@ -7,8 +7,8 @@
       url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    agenix = {
-      url = "github:ryantm/agenix";
+    nixos-hardware = {
+      url = "github:NixOS/nixos-hardware/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     firefox-addons = {
@@ -23,6 +23,9 @@
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-doom-emacs-unstraightened = {
+      url = "github:marienz/nix-doom-emacs-unstraightened";
+    };
     stylix = {
       url = "github:danth/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -33,7 +36,7 @@
     self,
     nixpkgs,
     home-manager,
-    agenix,
+    nixos-hardware,
     treefmt-nix,
     niri,
     stylix,
@@ -49,11 +52,11 @@
         modules = [
           ./modules/common.nix
           ./hosts/chi/configuration.nix
-          agenix.nixosModules.default
+          nixos-hardware.nixosModules.framework-12-13th-gen-intel
           niri.nixosModules.niri
           home-manager.nixosModules.home-manager
           {
-            home-manager.useGlobalPkgs = false;
+            home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "hm-backup";
             home-manager.extraSpecialArgs = {inherit inputs;};
@@ -61,7 +64,7 @@
               stylix.homeModules.stylix
               niri.homeModules.stylix
             ];
-            home-manager.users.mollyw = import ./home/mollyw.nix;
+            home-manager.users.mollyw = import ./home;
           }
         ];
       };

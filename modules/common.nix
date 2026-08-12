@@ -2,10 +2,11 @@
   # Nix settings
   nix.settings.experimental-features = ["nix-command" "flakes"];
   nix.settings.auto-optimise-store = true;
+  # 256 MiB download buffer: fewer stalls on large fetches (games, toolchains)
+  nix.settings.download-buffer-size = 268435456;
 
   # Locale
   time.timeZone = "America/New_York";
-  services.timesyncd.enable = true;
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
     LC_ADDRESS = "en_US.UTF-8";
@@ -25,9 +26,10 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # Fonts: Comic Mono Nerd Font system-wide
+  # Fonts: Comic Mono Nerd Font system-wide; Noto for Firefox's default look
   fonts.packages = with pkgs; [
     nerd-fonts.comic-shanns-mono
+    noto-fonts
     noto-fonts-color-emoji
   ];
   fonts.fontconfig.defaultFonts = {

@@ -1,4 +1,5 @@
 {
+  lib,
   pkgs,
   inputs,
   ...
@@ -9,6 +10,7 @@
 
   # Bootloader
   boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
 
   # Hostname
@@ -31,14 +33,17 @@
   # Niri compositor
   programs.niri = {
     enable = true;
-    package = pkgs.niri-stable;
+    package = pkgs.niri-unstable;
+  };
+
+  # Rotate the internal display from the Framework's accelerometer data.
+  services.iio-niri = {
+    enable = true;
+    extraArgs = ["--monitor" "eDP-1"];
   };
 
   # XWayland support for X11 apps under niri
   programs.xwayland.enable = true;
-
-  # Printing
-  services.printing.enable = true;
 
   # Sound
   services.pulseaudio.enable = false;
@@ -48,6 +53,7 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
+    jack.enable = true;
   };
 
   # Bluetooth
@@ -60,14 +66,17 @@
     isNormalUser = true;
     description = "Molly Wunderlich";
     shell = pkgs.zsh;
-    extraGroups = ["networkmanager" "wheel"];
-    packages = with pkgs; [
-      # Add user-specific packages here
-    ];
+    # The input group lets the user gesture service read the internal touchscreen.
+    extraGroups = ["input" "networkmanager" "wheel"];
   };
 
   programs.zsh.enable = true;
-  programs.nix-ld.enable = true;
+  # HM's compinit in ~/.zshrc owns the fpath; skip the duplicate run in /etc/zshrc
+  programs.zsh.enableGlobalCompInit = false;
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [freetype fontconfig libpng];
+  };
 
   # doas alongside sudo for users in the wheel group
   security.doas = {
@@ -81,25 +90,39 @@
     ];
   };
 
+  # XDG desktop portal for native file dialogs under Wine/Ableton
+  xdg.portal = {
+    enable = true;
+    extraPortals = [pkgs.xdg-desktop-portal-gtk];
+    config.common.default = "*";
+  };
+
   # System packages
   environment.systemPackages = with pkgs; [
     vim
     proton-vpn
     proton-pass
     signal-desktop
-    protonmail-desktop
     proton-authenticator
     opencode
     prismlauncher
     nix-output-monitor
     age
-    inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
+    unzip
   ];
+
+  # Skip default system packages (nano, perl, rsync, strace)
+  environment.defaultPackages = lib.mkForce [];
+
+  # Skip the NixOS manual (rebuilds on every config change, rarely read)
+  documentation.nixos.enable = false;
 
   # Laptop power management (Framework 12, Intel)
   services.power-profiles-daemon.enable = true;
   services.thermald.enable = true;
   services.fwupd.enable = true;
+  # UPower daemon — ironbar's battery module reads battery state over zbus
+  services.upower.enable = true;
 
   # Nix Helper (nh) — readable rebuild diffs + scheduled cleanup
   programs.nh = {
@@ -117,9 +140,6 @@
     remotePlay.openFirewall = true;
   };
   programs.gamemode.enable = true;
-
-  # Agenix secrets directory
-  age.secretsDir = "/run/secrets";
 
   # System state version
   system.stateVersion = "26.05";
