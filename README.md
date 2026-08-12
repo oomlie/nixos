@@ -2,7 +2,7 @@
 
 NixOS configuration for my Framework 12 laptop aka chi. Everything here is subject to change, and is for my own personal use.
 
-The Framework hardware module, accelerometer-driven Niri rotation, on-screen keyboard, and optional touchscreen edge gestures make the convertible hardware usable outside a full desktop environment.
+The Framework hardware module, accelerometer-driven Niri rotation, manually toggled on-screen keyboard, rotation-aware touchscreen edge gestures, and Powertop tunings make the convertible hardware usable outside a full desktop environment.
 
 It's widely vibe coded togther, but seems to be stable. I'm not doing anything that difficult here, and goes to show that anyone can waste electricity.
 
@@ -12,7 +12,7 @@ It's widely vibe coded togther, but seems to be stable. I'm not doing anything t
 hosts/chi/          — host-specific config (chi, a Framework 12 laptop)
 modules/common.nix  — shared settings (locale, firewall, fonts, nix settings)
 home/               — Home Manager modules, one file per topic
-                      (shell, apps, emacs, niri, waybar, foot, khal, stylix, opencode)
+                      (shell, apps, emacs, niri, ironbar, tablet, foot, khal, stylix, opencode)
 wallpapers/         — wallpapers (wp2002041.jpg also generates the stylix theme)
 ```
 

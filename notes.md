@@ -4,10 +4,10 @@
 
 The `nixos-hardware` Framework 12 module loads `pinctrl_tigerlake` in the initrd before `soc_button_array`, enables IIO sensors, installs `framework_tool`, and keeps firmware updates available through `fwupd`. `services.iio-niri` forwards accelerometer orientation to Niri for the internal `eDP-1` panel.
 
-`home/tablet.nix` provides two optional user services:
+`home/tablet.nix` provides two user services:
 
-- `tablet-keyboard.service` keeps `wvkbd` hidden and ready to toggle from Ironbar or `Mod+Shift+K`.
-- `tablet-gestures.service` maps two-finger swipes from the left/right edges to column navigation and a two-finger swipe from the bottom edge to Niri's overview.
+- `tablet-keyboard.service` keeps `wvkbd` hidden and ready to toggle from Ironbar or `Mod+Shift+K`. It intentionally does not open automatically when entering tablet mode.
+- `tablet-gestures.service` reads the internal ILIT2901 touchscreen, maps two-finger swipes from the left/right edges to column navigation, and maps a two-finger swipe from the bottom edge to Niri's overview. It follows accelerometer events and restarts `lisgd` with the matching orientation after the screen rotates.
 
 The gestures are experimental and can interfere with multi-touch drawing applications. Disable them with:
 
@@ -25,6 +25,16 @@ systemctl status iio-sensor-proxy.service
 systemctl --user status iio-niri.service tablet-keyboard.service tablet-gestures.service
 ```
 
+The host enables NixOS's Powertop service, which applies `powertop --auto-tune` once at boot. `power-profiles-daemon` remains enabled for switching CPU energy profiles. If a peripheral develops autosuspend problems, test without the tunings using `sudo systemctl stop powertop.service` before disabling `powerManagement.powertop.enable`.
+
+Sources used for this setup:
+
+- [Niri switch events](https://niri-wm.github.io/niri/Configuration%3A-Switch-Events.html) documents tablet-mode hooks. They are not used to show the keyboard automatically here.
+- [Niri touchscreen gestures discussion](https://github.com/niri-wm/niri/discussions/463) covers `lisgd`, rotation handling, Roland, and experimental native gesture work.
+- [Framework 12 Sway tips](https://community.frame.work/t/sway-on-the-framework-laptop-12/73173) demonstrates the practical `wvkbd`, rotation, and touch-sized bar-control pattern.
+- [Framework 12 tablet requirements](https://community.frame.work/t/what-are-the-linux-system-requirements-for-tablet-mode/71466) and the [tablet-mode recovery tracking thread](https://community.frame.work/t/fw12-problems-returning-from-tablet-mode-tracking-thread/71631) cover kernel module ordering and hardware failure modes.
+- [The Tangled repository](https://tangled.org/molly.computer/nixos/tree/master) is the primary remote for this configuration. Tangled's public search currently exposes few comparable Framework 12 configurations.
+
 ### software to investigate
 
 - `rnote`: touch-first handwritten notes and sketching.
@@ -34,9 +44,13 @@ systemctl --user status iio-niri.service tablet-keyboard.service tablet-gestures
 - `papers`: document and PDF reader with a compact GTK interface.
 - `kdeconnect` or `localsend`: phone integration and local file transfer.
 - `kooha`: simple Wayland screen recording.
-- `powertop` and `powerstat`: measure battery use before adding power tweaks.
+- `powerstat`: compare actual battery use before and after Powertop tuning; `sudo powertop` provides interactive wakeup and device diagnostics.
+- `swayidle`: automatic lock, display power-off, and suspend under Niri.
+- `zramSwap`: compressed memory fallback during heavy builds or games; less urgent while the system has ample disk swap.
+- Framework EC charge limits: cap charging around 80% for battery longevity after confirming support and preferred travel behavior.
 - `unl0kr`: touchscreen initrd unlock if disk encryption is added later.
 - `roland`: Niri-focused edge gesture daemon with better edge detection than `lisgd`, but it is lightly maintained and not packaged in nixpkgs.
+- `sysboard`: another Niri-compatible on-screen keyboard worth comparing with `wvkbd`.
 - `squeekboard`: richer input-method behavior if its standalone compositor integration improves.
 
 ## pulling this config to a new system

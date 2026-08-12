@@ -107,6 +107,7 @@
     opencode
     prismlauncher
     nix-output-monitor
+    powertop
     age
     unzip
   ];
@@ -119,6 +120,9 @@
 
   # Laptop power management (Framework 12, Intel)
   services.power-profiles-daemon.enable = true;
+  # Apply peripheral and device power-saving tunables at boot. PPD continues
+  # to manage the selectable CPU energy profiles at runtime.
+  powerManagement.powertop.enable = true;
   services.thermald.enable = true;
   services.fwupd.enable = true;
   # UPower daemon — ironbar's battery module reads battery state over zbus
