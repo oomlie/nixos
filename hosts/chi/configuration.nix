@@ -104,7 +104,6 @@
     proton-pass
     signal-desktop
     proton-authenticator
-    opencode
     prismlauncher
     nix-output-monitor
     powertop

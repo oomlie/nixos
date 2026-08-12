@@ -30,6 +30,10 @@
       url = "github:danth/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    hunk = {
+      url = "github:modem-dev/hunk";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs @ {
@@ -63,6 +67,7 @@
             home-manager.sharedModules = [
               stylix.homeModules.stylix
               niri.homeModules.stylix
+              inputs.hunk.homeManagerModules.default
             ];
             home-manager.users.mollyw = import ./home;
           }

@@ -111,12 +111,11 @@ Instead of a generic OpenAI-compatible provider, it uses Kimi's OAuth device flo
 
 This NixOS config handles steps 1 and 3 automatically:
 
-- `hosts/chi/configuration.nix` installs `pkgs.opencode` as a system package.
-- `home/opencode.nix` writes `~/.config/opencode/opencode.json` with the `opencode-kimi-full`
-  plugin entry and the full `kimi-for-coding-oauth` provider block.
-- A Home Manager activation script runs `opencode plugin opencode-kimi-full --global`
-  on each activation, so the plugin is installed without manual intervention.
-  The script is best-effort so network issues during rebuild do not break the system build.
+- Home Manager's `programs.opencode` module installs OpenCode and writes its configuration.
+- `home/opencode.nix` pins `opencode-kimi-full` 1.4.0 and defines the full
+  `kimi-for-coding-oauth` provider block.
+- OpenCode resolves the pinned plugin from its normal package cache; rebuilds do not run an
+  imperative plugin-install activation step.
 
 After running `sudo nixos-rebuild switch --flake .#chi`, the only remaining step is:
 
@@ -130,7 +129,7 @@ Then select `kimi-for-coding-oauth/kimi-for-coding` in opencode.
 
 The `~/.config/opencode/opencode.json` written by Home Manager contains:
 
-- `plugin`: `["opencode-kimi-full"]`
+- `plugin`: `["opencode-kimi-full@1.4.0"]`
 - `provider.kimi-for-coding-oauth`:
   - `name`: "Kimi For Coding (OAuth)"
   - `npm`: "@ai-sdk/openai-compatible"
@@ -173,6 +172,27 @@ Git is fully configured through `programs.git`:
 - `push.autoSetupRemote = true`
 - `pull.rebase = false`
 - Core editor: Helix (`hx`)
+- `git hdiff` / `git hshow`: review changes with Hunk
+- `git dft`: structural diffs with Difftastic
+
+### Agent review tools
+
+- Hunk 0.18.0 is pinned through its upstream flake and configured as Jujutsu's pager.
+- Jujutsu is enabled with the same identity as Git.
+- Difftastic is installed from nixpkgs and exposed through `git dft`.
+- OpenCode's built-in `general`, `explore`, and `scout` subagents use
+  `openai/gpt-5.6-luna-fast`; its lightweight internal tasks use the same model.
+- OpenCode includes focused `nix` and read-only `review` agents, reusable commands, and the
+  Hunk live-review skill.
+
+### Future agent tooling
+
+- Add `sops-nix` or `agenix` and rotate credentials found in old local backup files.
+- Evaluate colocated Jujutsu repositories after learning its change-based workflow.
+- Evaluate OpenCode references for shared documentation repositories.
+- Package the Kimi plugin and custom tool dependencies fully in Nix if runtime package caching
+  becomes unreliable.
+- Evaluate a local Ollama utility model for non-subscription background work.
 
 ### IDE: VSCodium
 

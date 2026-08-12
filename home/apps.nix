@@ -27,6 +27,32 @@ in {
         push.autoSetupRemote = true;
         pull.rebase = false;
         core.editor = "hx";
+        alias = {
+          hdiff = "!hunk diff";
+          hshow = "!hunk show";
+          dft = "difftool --no-prompt --tool=difftastic";
+        };
+        difftool.difftastic.cmd = "difft \"$LOCAL\" \"$REMOTE\"";
+      };
+    };
+
+    jujutsu = {
+      enable = true;
+      ediff = false;
+      settings.user = {
+        name = "molly.computer";
+        email = "molly@molly.computer";
+      };
+    };
+
+    hunk = {
+      enable = true;
+      enableJujutsuIntegration = true;
+      settings = {
+        mode = "auto";
+        line_numbers = true;
+        exclude_untracked = false;
+        transparent_background = true;
       };
     };
 
@@ -159,4 +185,6 @@ in {
       };
     };
   };
+
+  home.packages = [pkgs.difftastic];
 }
