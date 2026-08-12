@@ -5,14 +5,17 @@
     ./foot.nix
     ./khal.nix
     ./niri.nix
+    ./noctalia.nix
     ./oh-my-pi.nix
     ./opencode.nix
     ./scripts.nix
     ./shell.nix
+    ./satty.nix
     ./swayidle.nix
+    ./swayosd.nix
     ./stylix.nix
     ./tablet.nix
-    ./ironbar.nix
+    ./wlsunset.nix
   ];
 
   _module.args.wallpaper = ../wallpapers/wp2002041.jpg;
@@ -23,11 +26,7 @@
 
     packages = with pkgs; [
       # Niri ecosystem
-      mako
-      swaylock
       xwayland-satellite
-      swaybg
-      brightnessctl
       playerctl
       equibop
 

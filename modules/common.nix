@@ -2,6 +2,8 @@
   # Nix settings
   nix.settings.experimental-features = ["nix-command" "flakes"];
   nix.settings.auto-optimise-store = true;
+  nix.settings.extra-substituters = ["https://noctalia.cachix.org"];
+  nix.settings.extra-trusted-public-keys = ["noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="];
   # 256 MiB download buffer: fewer stalls on large fetches (games, toolchains)
   nix.settings.download-buffer-size = 268435456;
 

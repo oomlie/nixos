@@ -1,6 +1,6 @@
 {
   config,
-  wallpaper,
+  pkgs,
   ...
 }: {
   programs.niri.settings = {
@@ -31,6 +31,7 @@
         inactive.color = "#${config.lib.stylix.colors.base03}";
       };
       border.enable = false;
+      background-color = "transparent";
     };
 
     window-rules = [
@@ -54,13 +55,25 @@
         matches = [{app-id = "net-runelite-launcher-Launcher";}];
         open-floating = true;
       }
+      {
+        matches = [{app-id = "dev.noctalia.Noctalia";}];
+        open-floating = true;
+        default-column-width.fixed = 1080;
+        default-window-height.fixed = 920;
+      }
     ];
 
+    layer-rules = [
+      {
+        matches = [{namespace = "^noctalia-wallpaper";}];
+        place-within-backdrop = true;
+      }
+    ];
+
+    debug.honor-xdg-activation-with-invalid-serial = [];
+
     spawn-at-startup = [
-      {argv = ["swaybg" "--image" "${wallpaper}"];}
-      {argv = ["mako"];}
       {argv = ["xwayland-satellite"];}
-      {argv = ["ironbar"];}
     ];
 
     screenshot-path = "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png";
@@ -73,8 +86,24 @@
         action.spawn = "foot";
       };
       "Mod+D" = {
-        hotkey-overlay.title = "Run Application: vicinae";
-        action.spawn = ["vicinae" "vicinae://toggle"];
+        repeat = false;
+        hotkey-overlay.title = "Open Noctalia Launcher";
+        action.spawn = ["noctalia" "msg" "panel-toggle" "launcher"];
+      };
+      "Mod+S" = {
+        repeat = false;
+        hotkey-overlay.title = "Open Noctalia Control Center";
+        action.spawn = ["noctalia" "msg" "panel-toggle" "control-center"];
+      };
+      "Mod+Shift+Comma" = {
+        repeat = false;
+        hotkey-overlay.title = "Open Noctalia Settings";
+        action.spawn = ["noctalia" "msg" "settings-toggle"];
+      };
+      "Alt+Tab" = {
+        repeat = false;
+        hotkey-overlay.title = "Open Noctalia Window Switcher";
+        action.spawn = ["noctalia" "msg" "window-switcher"];
       };
       "Mod+O" = {
         repeat = false;
@@ -93,8 +122,8 @@
       "Super+Alt+L" = {
         repeat = false;
         allow-inhibiting = false;
-        hotkey-overlay.title = "Lock Screen: swaylock";
-        action.spawn = "swaylock";
+        hotkey-overlay.title = "Lock Screen: Noctalia";
+        action.spawn-sh = "${pkgs.systemd}/bin/systemctl --user start noctalia.service && ${config.programs.noctalia.package}/bin/noctalia msg session lock";
       };
 
       "Mod+Q" = {
@@ -176,19 +205,19 @@
 
       "XF86AudioRaiseVolume" = {
         allow-when-locked = true;
-        action.spawn-sh = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+ -l 1.0";
+        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--output-volume" "raise"];
       };
       "XF86AudioLowerVolume" = {
         allow-when-locked = true;
-        action.spawn-sh = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-";
+        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--output-volume" "lower"];
       };
       "XF86AudioMute" = {
         allow-when-locked = true;
-        action.spawn-sh = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--output-volume" "mute-toggle"];
       };
       "XF86AudioMicMute" = {
         allow-when-locked = true;
-        action.spawn-sh = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
+        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--input-volume" "mute-toggle"];
       };
 
       "XF86AudioPlay" = {
@@ -210,11 +239,11 @@
 
       "XF86MonBrightnessUp" = {
         allow-when-locked = true;
-        action.spawn = ["brightnessctl" "--class=backlight" "set" "+10%"];
+        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--brightness" "raise"];
       };
       "XF86MonBrightnessDown" = {
         allow-when-locked = true;
-        action.spawn = ["brightnessctl" "--class=backlight" "set" "10%-"];
+        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--brightness" "lower"];
       };
 
       "Print".action.screenshot = [];

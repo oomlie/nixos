@@ -124,7 +124,7 @@
   powerManagement.powertop.enable = true;
   services.thermald.enable = true;
   services.fwupd.enable = true;
-  # UPower daemon — ironbar's battery module reads battery state over zbus
+  # UPower supplies battery state to the desktop shell.
   services.upower.enable = true;
 
   # Nix Helper (nh) — readable rebuild diffs + scheduled cleanup

@@ -3,7 +3,7 @@
   pkgs,
   ...
 }: let
-  lock = "${pkgs.swaylock}/bin/swaylock -f";
+  lock = "${pkgs.systemd}/bin/systemctl --user start noctalia.service && ${config.programs.noctalia.package}/bin/noctalia msg session lock";
   niri = "${config.programs.niri.package}/bin/niri msg action";
 in {
   services.swayidle = {
