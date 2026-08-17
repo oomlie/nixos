@@ -6,6 +6,45 @@
   ...
 }: let
   inherit (pkgs.stdenv.hostPlatform) system;
+  tea = pkgs.writeShellApplication {
+    name = "tea";
+    runtimeInputs = [pkgs.libsecret];
+    text = ''
+      config_dir="$(mktemp -d "''${XDG_RUNTIME_DIR:-/tmp}/tea.XXXXXX")"
+      trap 'rm -rf "$config_dir"' EXIT
+      mkdir -p "$config_dir/tea"
+
+      token="$(secret-tool lookup service gitea host git.purplish.blue user molly)"
+      if [[ -z "$token" ]]; then
+        echo "tea: Gitea token not found in the keyring" >&2
+        exit 1
+      fi
+
+      umask 077
+      cat >"$config_dir/tea/config.yml" <<EOF
+      logins:
+        - name: purplish
+          url: https://git.purplish.blue
+          token: $token
+          default: true
+          user: molly
+      EOF
+
+      XDG_CONFIG_HOME="$config_dir" ${pkgs.tea}/bin/tea "$@"
+    '';
+  };
+  giteaCredentialHelper = pkgs.writeShellScript "git-credential-purplish" ''
+    if [[ "''${1:-}" != get ]]; then
+      exit 0
+    fi
+
+    token="$(${pkgs.libsecret}/bin/secret-tool lookup service gitea host git.purplish.blue user molly)"
+    if [[ -z "$token" ]]; then
+      exit 1
+    fi
+
+    printf '%s\n' "username=molly" "password=$token"
+  '';
 in {
   programs = {
     helix = {
@@ -26,6 +65,7 @@ in {
         init.defaultBranch = "main";
         push.autoSetupRemote = true;
         pull.rebase = false;
+        credential."https://git.purplish.blue".helper = "${giteaCredentialHelper}";
         core.editor = "hx";
         alias = {
           hdiff = "!hunk diff";
@@ -168,5 +208,9 @@ in {
     btop.enable = true;
   };
 
-  home.packages = [pkgs.difftastic];
+  home.packages = [
+    pkgs.difftastic
+    pkgs.thunderbird
+    tea
+  ];
 }
