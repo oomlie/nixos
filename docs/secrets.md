@@ -32,8 +32,8 @@ sudo nixos-rebuild switch --flake .#halo \
 `secrets/halo.yaml` contains the encrypted PDS environment and halo
 materializes it as `/run/secrets/halo/pds-env` with mode `0400`.
 
-The PDS Compose definition still lives under `/home/molly/pds/` and currently
-uses its existing `pds.env`. The next step is to change that Compose file to
-use `/run/secrets/halo/pds-env`, verify the PDS container, and then remove the
-plaintext copy. Container definitions are intentionally still outside this
-repository for now; they are planned to move here after the runtime cutover.
+The PDS Compose definition under `/home/molly/pds/` now uses
+`/run/secrets/halo/pds-env`. The former plaintext `pds.env` was removed after
+the container was recreated and its health endpoint verified. Container
+definitions are intentionally still outside this repository for now; they are
+planned to move here after the runtime cutover.
