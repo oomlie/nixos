@@ -1,5 +1,5 @@
 {
-  description = "NixOS configuration for chi";
+  description = "NixOS configurations for chi and halo";
 
   nixConfig = {
     extra-substituters = ["https://noctalia.cachix.org"];
@@ -44,6 +44,12 @@
       url = "github:modem-dev/hunk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Tangled: git server (knot) and CI runner (spindle) for halo
+    tangled = {
+      url = "git+https://tangled.org/tangled.sh/core";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs @ {
@@ -61,6 +67,7 @@
     treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
   in {
     nixosConfigurations = {
+      # Framework 12 laptop (desktop)
       chi = nixpkgs.lib.nixosSystem {
         specialArgs = {inherit inputs;};
         modules = [
@@ -83,6 +90,20 @@
               inputs.hunk.homeManagerModules.default
             ];
             home-manager.users.mollyw = import ./home;
+          }
+        ];
+      };
+
+      # Strix Halo server
+      halo = nixpkgs.lib.nixosSystem {
+        specialArgs = {inherit inputs;};
+        modules = [
+          ./modules/common.nix
+          ./hosts/halo/configuration.nix
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.backupFileExtension = "hm-backup";
+            home-manager.extraSpecialArgs = {inherit inputs;};
           }
         ];
       };

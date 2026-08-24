@@ -8,6 +8,23 @@
 
   nixpkgs.overlays = [inputs.niri.overlays.niri];
 
+  # Noctalia binary cache
+  nix.settings.extra-substituters = ["https://noctalia.cachix.org"];
+  nix.settings.extra-trusted-public-keys = ["noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="];
+
+  # Fonts: Comic Mono Nerd Font system-wide; Noto for Firefox's default look
+  fonts.packages = with pkgs; [
+    nerd-fonts.comic-shanns-mono
+    noto-fonts
+    noto-fonts-color-emoji
+  ];
+  fonts.fontconfig.defaultFonts = {
+    serif = ["ComicShannsMono Nerd Font"];
+    sansSerif = ["ComicShannsMono Nerd Font"];
+    monospace = ["ComicShannsMono Nerd Font Mono"];
+    emoji = ["Noto Color Emoji"];
+  };
+
   # Bootloader
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10;

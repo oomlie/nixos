@@ -1,9 +1,7 @@
-{pkgs, ...}: {
+_: {
   # Nix settings
   nix.settings.experimental-features = ["nix-command" "flakes"];
   nix.settings.auto-optimise-store = true;
-  nix.settings.extra-substituters = ["https://noctalia.cachix.org"];
-  nix.settings.extra-trusted-public-keys = ["noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="];
   # 256 MiB download buffer: fewer stalls on large fetches (games, toolchains)
   nix.settings.download-buffer-size = 268435456;
 
@@ -27,17 +25,4 @@
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-
-  # Fonts: Comic Mono Nerd Font system-wide; Noto for Firefox's default look
-  fonts.packages = with pkgs; [
-    nerd-fonts.comic-shanns-mono
-    noto-fonts
-    noto-fonts-color-emoji
-  ];
-  fonts.fontconfig.defaultFonts = {
-    serif = ["ComicShannsMono Nerd Font"];
-    sansSerif = ["ComicShannsMono Nerd Font"];
-    monospace = ["ComicShannsMono Nerd Font Mono"];
-    emoji = ["Noto Color Emoji"];
-  };
 }

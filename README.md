@@ -1,24 +1,31 @@
 # molly's nixos config
 
-NixOS configuration for my Framework 12 laptop aka chi. Everything here is subject to change, and is for my own personal use.
+NixOS configurations for two machines, managed from a single flake.
 
-The Framework hardware module, accelerometer-driven Niri rotation, manually toggled on-screen keyboard, rotation-aware touchscreen edge gestures, and Powertop tunings make the convertible hardware usable outside a full desktop environment.
-
-It's widely vibe coded togther, but seems to be stable. I'm not doing anything that difficult here, and goes to show that anyone can waste electricity.
+- **chi** — Framework 12 laptop (desktop, Niri compositor, Noctalia shell)
+- **halo** — Strix Halo server (headless, Tangled knot/spindle, Podman containers)
 
 ## structure
 
 ```
-hosts/chi/          — host-specific config (chi, a Framework 12 laptop)
-modules/common.nix  — shared settings (locale, firewall, fonts, nix settings)
-home/               — Home Manager modules, one file per topic
-                      (shell, apps, emacs, niri, Noctalia, tablet, foot, stylix, opencode)
+hosts/chi/          — chi-specific config (Framework 12 laptop, desktop)
+hosts/halo/         — halo-specific config (Strix Halo server, headless)
+modules/common.nix  — shared settings (locale, firewall, nix settings)
+home/               — Home Manager modules for chi (shell, apps, emacs, niri, etc.)
 wallpapers/         — wallpapers (wp2002041.jpg also generates the stylix theme)
 ```
 
-## notes
+## deploying
 
-See [`notes.md`](notes.md) for setup details, the opencode + kimi integration, and other misc notes about this machine.
+```bash
+# chi (local)
+sudo nixos-rebuild switch --flake .#chi
+
+# halo (remote)
+nixos-rebuild switch --flake .#halo \
+  --target-host molly@192.168.0.169 \
+  --use-remote-sudo
+```
 
 ## updating inputs
 
@@ -26,3 +33,11 @@ See [`notes.md`](notes.md) for setup details, the opencode + kimi integration, a
 nix flake update
 sudo nixos-rebuild switch --flake .#chi
 ```
+
+## notes
+
+See [`notes.md`](notes.md) for setup details, the opencode + kimi integration, and other misc notes.
+
+Container runtime definitions (Firecrawl, Plane, etc.) currently live on halo
+under `/home/molly/`. These are planned to be moved into this repository as
+declarative modules once secrets management (sops-nix) is in place.
