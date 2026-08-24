@@ -11,6 +11,29 @@ _: {
         ignoreDups = true;
         share = true;
       };
+      shellAliases = {
+        halo = "ssh halo";
+        chi = "ssh chi";
+      };
+    };
+
+    ssh = {
+      enable = true;
+      matchBlocks = {
+        halo = {
+          hostname = "192.168.0.169";
+          user = "molly";
+        };
+        chi = {
+          hostname = "192.168.0.216";
+          user = "mollyw";
+        };
+        "knot-ssh.daze.lol" = {
+          user = "git";
+          identityFile = "~/.ssh/mol";
+          proxyCommand = "cloudflared access ssh --hostname %h";
+        };
+      };
     };
 
     starship.enable = true;
