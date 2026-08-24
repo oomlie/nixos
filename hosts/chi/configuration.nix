@@ -138,6 +138,7 @@
     nix-output-monitor
     powertop
     age
+    sops
     unzip
   ];
 

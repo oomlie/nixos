@@ -50,6 +50,10 @@
       url = "git+https://tangled.org/tangled.sh/core";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs @ {
@@ -101,6 +105,7 @@
           ./modules/common.nix
           ./hosts/halo/configuration.nix
           home-manager.nixosModules.home-manager
+          inputs.sops-nix.nixosModules.sops
           {
             home-manager.backupFileExtension = "hm-backup";
             home-manager.extraSpecialArgs = {inherit inputs;};

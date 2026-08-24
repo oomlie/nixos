@@ -79,6 +79,8 @@
   environment.systemPackages = with pkgs; [
     git
     docker-compose
+    sops
+    age
   ];
 
   # Services
@@ -109,6 +111,17 @@
       enable = true;
       extraArgs = "--keep 5 --keep-since 7d";
     };
+  };
+
+  # Secrets are encrypted in this repository and materialized at activation.
+  # Container Compose definitions remain outside Nix for now; the PDS pilot
+  # secret will be wired into its runtime after this foundation is deployed.
+  sops.age.keyFile = "/var/lib/sops-nix/keys.txt";
+  sops.secrets."halo/pds-env" = {
+    sopsFile = ../../secrets/halo.yaml;
+    owner = "molly";
+    group = "users";
+    mode = "0400";
   };
 
   system.stateVersion = "26.05";
