@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{config, ...}: {
   programs.niri.settings = {
     input = {
       keyboard.xkb.layout = "us";
@@ -26,7 +22,7 @@
       ];
       default-column-width.proportion = 0.5;
       focus-ring = {
-        width = 4;
+        width = 3;
         active.color = "#${config.lib.stylix.colors.base0D}";
         inactive.color = "#${config.lib.stylix.colors.base03}";
       };
@@ -35,6 +31,17 @@
     };
 
     window-rules = [
+      {
+        geometry-corner-radius = let
+          radius = 12.0;
+        in {
+          top-left = radius;
+          top-right = radius;
+          bottom-right = radius;
+          bottom-left = radius;
+        };
+        clip-to-geometry = true;
+      }
       {
         matches = [
           {
@@ -115,6 +122,11 @@
         hotkey-overlay.title = "Toggle On-Screen Keyboard";
         action.spawn = ["systemctl" "--user" "kill" "--signal=RTMIN" "tablet-keyboard.service"];
       };
+      "Mod+Shift+N" = {
+        repeat = false;
+        hotkey-overlay.title = "Toggle Night Light";
+        action.spawn = ["noctalia" "msg" "nightlight-toggle"];
+      };
       "Mod+Shift+W" = {
         hotkey-overlay.title = "Wi-Fi Networks: nmtui";
         action.spawn = ["foot" "-e" "nmtui"];
@@ -123,7 +135,7 @@
         repeat = false;
         allow-inhibiting = false;
         hotkey-overlay.title = "Lock Screen: Noctalia";
-        action.spawn-sh = "${pkgs.systemd}/bin/systemctl --user start noctalia.service && ${config.programs.noctalia.package}/bin/noctalia msg session lock";
+        action.spawn = ["noctalia" "msg" "session" "lock"];
       };
 
       "Mod+Q" = {
@@ -205,45 +217,45 @@
 
       "XF86AudioRaiseVolume" = {
         allow-when-locked = true;
-        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--output-volume" "raise"];
+        action.spawn = ["noctalia" "msg" "volume-up"];
       };
       "XF86AudioLowerVolume" = {
         allow-when-locked = true;
-        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--output-volume" "lower"];
+        action.spawn = ["noctalia" "msg" "volume-down"];
       };
       "XF86AudioMute" = {
         allow-when-locked = true;
-        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--output-volume" "mute-toggle"];
+        action.spawn = ["noctalia" "msg" "volume-mute"];
       };
       "XF86AudioMicMute" = {
         allow-when-locked = true;
-        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--input-volume" "mute-toggle"];
+        action.spawn = ["noctalia" "msg" "mic-mute"];
       };
 
       "XF86AudioPlay" = {
         allow-when-locked = true;
-        action.spawn-sh = "playerctl play-pause";
+        action.spawn = ["noctalia" "msg" "media" "toggle"];
       };
       "XF86AudioPause" = {
         allow-when-locked = true;
-        action.spawn-sh = "playerctl play-pause";
+        action.spawn = ["noctalia" "msg" "media" "toggle"];
       };
       "XF86AudioPrev" = {
         allow-when-locked = true;
-        action.spawn-sh = "playerctl previous";
+        action.spawn = ["noctalia" "msg" "media" "previous"];
       };
       "XF86AudioNext" = {
         allow-when-locked = true;
-        action.spawn-sh = "playerctl next";
+        action.spawn = ["noctalia" "msg" "media" "next"];
       };
 
       "XF86MonBrightnessUp" = {
         allow-when-locked = true;
-        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--brightness" "raise"];
+        action.spawn = ["noctalia" "msg" "brightness-up"];
       };
       "XF86MonBrightnessDown" = {
         allow-when-locked = true;
-        action.spawn = ["${pkgs.swayosd}/bin/swayosd-client" "--brightness" "lower"];
+        action.spawn = ["noctalia" "msg" "brightness-down"];
       };
 
       "Print".action.screenshot = [];

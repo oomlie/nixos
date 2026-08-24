@@ -33,29 +33,31 @@
 
       notification.enable_daemon = true;
 
-      osd.kinds = {
-        volume = false;
-        brightness = false;
-        wifi = false;
-        bluetooth = false;
-        power_profile = false;
-        caffeine = false;
-        nightlight = false;
-        dnd = false;
-        lock_keys = false;
-        keyboard_layout = false;
-        privacy = false;
-      };
-
       lockscreen = {
         enabled = true;
+        lock_before_suspend = true;
         blurred_desktop = true;
       };
 
-      nightlight.enabled = false;
+      shell.polkit_agent = true;
+
+      nightlight = {
+        enabled = true;
+        temperature_day = 6500;
+        temperature_night = 4000;
+      };
+      calendar.enabled = true;
       idle.behavior = {
-        lock.enabled = false;
-        screen-off.enabled = false;
+        lock = {
+          enabled = true;
+          timeout = 600;
+          action = "lock";
+        };
+        screen-off = {
+          enabled = true;
+          timeout = 630;
+          action = "screen_off";
+        };
       };
 
       location = {
@@ -69,31 +71,33 @@
 
       bar.main = {
         position = "top";
-        thickness = 44;
-        margin_ends = 12;
+        thickness = 36;
+        margin_ends = 8;
         margin_edge = 8;
-        padding = 12;
+        padding = 10;
         widget_spacing = 6;
+        radius = 12;
+        background_opacity = 0.86;
+        border_width = 1.0;
         reserve_space = true;
+        auto_hide = false;
+        smart_auto_hide = false;
         start = [
           "launcher"
           "workspaces"
         ];
         center = ["clock"];
         end = [
-          "media"
           "tray"
           "notifications"
-          "clipboard"
           "network"
-          "bluetooth"
           "volume"
-          "brightness"
           "battery"
           "control-center"
-          "session"
         ];
       };
+
+      widget.network.show_label = false;
 
       dock.enabled = false;
       desktop_widgets.enabled = false;

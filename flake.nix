@@ -36,6 +36,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
+    noctalia-greeter = {
+      url = "github:noctalia-dev/noctalia-greeter";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     hunk = {
       url = "github:modem-dev/hunk";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -64,6 +68,8 @@
           ./hosts/chi/configuration.nix
           nixos-hardware.nixosModules.framework-12-13th-gen-intel
           niri.nixosModules.niri
+          inputs.noctalia.nixosModules.default
+          inputs.noctalia-greeter.nixosModules.default
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;

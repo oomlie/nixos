@@ -16,17 +16,20 @@
   # Hostname
   networking.hostName = "chi";
 
-  # Networking
-  networking.networkmanager.enable = true;
+  # Noctalia's recommended services provide NetworkManager, Bluetooth, UPower,
+  # and a power profile service for its integrations.
+  programs.noctalia = {
+    enable = true;
+    recommendedServices.enable = true;
+  };
 
-  # Greetd login manager
-  services.greetd = {
+  # Noctalia login UI; its module configures greetd and AccountsService.
+  programs.noctalia-greeter = {
     enable = true;
     settings = {
-      default_session = {
-        command = "${pkgs.tuigreet}/bin/tuigreet --time --cmd niri-session";
-        user = "greeter";
-      };
+      session.default = "niri";
+      keyboard.layout = "us";
+      idle.timeout = 300;
     };
   };
 
@@ -57,9 +60,7 @@
   };
 
   # Bluetooth
-  hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
-  services.blueman.enable = true;
 
   # User account
   users.users.mollyw = {
@@ -69,6 +70,18 @@
     # The input group lets the user gesture service read the internal touchscreen.
     extraGroups = ["input" "networkmanager" "wheel"];
   };
+
+  security.sudo.extraRules = [
+    {
+      users = ["mollyw"];
+      commands = [
+        {
+          command = "ALL";
+          options = ["NOPASSWD"];
+        }
+      ];
+    }
+  ];
 
   programs.zsh.enable = true;
   # HM's compinit in ~/.zshrc owns the fpath; skip the duplicate run in /etc/zshrc
@@ -118,15 +131,11 @@
   documentation.nixos.enable = false;
 
   # Laptop power management (Framework 12, Intel)
-  services.power-profiles-daemon.enable = true;
   # Apply peripheral and device power-saving tunables at boot. PPD continues
   # to manage the selectable CPU energy profiles at runtime.
   powerManagement.powertop.enable = true;
   services.thermald.enable = true;
   services.fwupd.enable = true;
-  # UPower supplies battery state to the desktop shell.
-  services.upower.enable = true;
-
   # Nix Helper (nh) — readable rebuild diffs + scheduled cleanup
   programs.nh = {
     enable = true;

@@ -6,7 +6,7 @@ The `nixos-hardware` Framework 12 module loads `pinctrl_tigerlake` in the initrd
 
 `home/tablet.nix` provides two user services:
 
-- `tablet-keyboard.service` keeps `wvkbd` hidden and ready to toggle from Ironbar or `Mod+Shift+K`. It intentionally does not open automatically when entering tablet mode.
+- `tablet-keyboard.service` keeps `wvkbd` hidden and ready to toggle with `Mod+Shift+K`. It intentionally does not open automatically when entering tablet mode.
 - `tablet-gestures.service` reads the internal ILIT2901 touchscreen, maps two-finger swipes from the left/right edges to column navigation, and maps a two-finger swipe from the bottom edge to Niri's overview. It follows accelerometer events and restarts `lisgd` with the matching orientation after the screen rotates.
 
 The gestures are experimental and can interfere with multi-touch drawing applications. Disable them with:
@@ -45,7 +45,6 @@ Sources used for this setup:
 - `kdeconnect` or `localsend`: phone integration and local file transfer.
 - `kooha`: simple Wayland screen recording.
 - `powerstat`: compare actual battery use before and after Powertop tuning; `sudo powertop` provides interactive wakeup and device diagnostics.
-- `swayidle`: automatic lock, display power-off, and suspend under Niri.
 - `zramSwap`: compressed memory fallback during heavy builds or games; less urgent while the system has ample disk swap.
 - Framework EC charge limits: cap charging around 80% for battery longevity after confirming support and preferred travel behavior.
 - `unl0kr`: touchscreen initrd unlock if disk encryption is added later.

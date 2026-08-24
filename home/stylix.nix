@@ -6,7 +6,6 @@
   fontPkg = pkgs.nerd-fonts.comic-shanns-mono;
   uiFont = "ComicShannsMono Nerd Font";
 in {
-  # Stylix auto-generated theme from wallpaper
   stylix = {
     enable = true;
     # useGlobalPkgs forbids HM-level nixpkgs.overlays; stylix's overlays only
@@ -14,6 +13,7 @@ in {
     overlays.enable = false;
     autoEnable = false;
     polarity = "dark";
+    base16Scheme = "${pkgs.base16-schemes}/share/themes/rose-pine.yaml";
     image = wallpaper;
     fonts = {
       serif = {

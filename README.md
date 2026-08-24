@@ -12,7 +12,7 @@ It's widely vibe coded togther, but seems to be stable. I'm not doing anything t
 hosts/chi/          — host-specific config (chi, a Framework 12 laptop)
 modules/common.nix  — shared settings (locale, firewall, fonts, nix settings)
 home/               — Home Manager modules, one file per topic
-                      (shell, apps, emacs, niri, ironbar, tablet, foot, khal, stylix, opencode)
+                      (shell, apps, emacs, niri, Noctalia, tablet, foot, stylix, opencode)
 wallpapers/         — wallpapers (wp2002041.jpg also generates the stylix theme)
 ```
 
