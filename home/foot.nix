@@ -5,6 +5,7 @@
 }: {
   programs.foot = {
     enable = true;
+    server.enable = true;
     settings = {
       main = {
         font = lib.mkForce "${config.stylix.fonts.monospace.name}:size=11";

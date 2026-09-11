@@ -90,7 +90,7 @@
 
       "Mod+Return" = {
         hotkey-overlay.title = "Open Terminal: foot";
-        action.spawn = "foot";
+        action.spawn = "footclient";
       };
       "Mod+D" = {
         repeat = false;

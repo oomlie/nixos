@@ -41,11 +41,87 @@ in {
       defaultEditor = true;
       settings = {
         editor.line-number = "relative";
+        editor.cursorline = true;
+        editor.indent-guides.render = true;
+        editor.bufferline = "multiple";
+        editor.lsp.display-inlay-hints = true;
       };
+      ignores = [".direnv/" "result"];
+      languages.language = [
+        {
+          name = "nix";
+          language-servers = ["nil"];
+          formatter = {command = "alejandra";};
+          auto-format = true;
+        }
+        {
+          name = "rust";
+          formatter = {command = "rustfmt";};
+          auto-format = true;
+        }
+        {
+          name = "bash";
+          formatter = {command = "shfmt";};
+          auto-format = true;
+        }
+        {
+          name = "toml";
+          formatter = {
+            command = "taplo";
+            args = ["format" "-"];
+          };
+          auto-format = true;
+        }
+        {
+          name = "markdown";
+          formatter = {
+            command = "prettier";
+            args = ["--parser=markdown"];
+          };
+          auto-format = true;
+        }
+        {
+          name = "typescript";
+          formatter = {command = "prettier";};
+          auto-format = true;
+        }
+        {
+          name = "tsx";
+          formatter = {command = "prettier";};
+          auto-format = true;
+        }
+        {
+          name = "javascript";
+          formatter = {command = "prettier";};
+          auto-format = true;
+        }
+      ];
+      extraPackages = with pkgs; [
+        nil
+        alejandra
+        rust-analyzer
+        rustfmt
+        bash-language-server
+        shfmt
+        taplo
+        yaml-language-server
+        vscode-langservers-extracted
+        marksman
+        prettier
+        typescript-language-server
+        pyright
+      ];
     };
 
     git = {
       enable = true;
+      lfs.enable = true;
+      signing = {
+        format = "ssh";
+        key = "~/.ssh/mol.pub";
+        signer = "${pkgs.openssh}/bin/ssh-keygen";
+        signByDefault = true;
+      };
       settings = {
         user = {
           name = "molly.computer";
@@ -56,6 +132,14 @@ in {
         pull.rebase = false;
         credential."https://git.purplish.blue".helper = "${giteaCredentialHelper}";
         core.editor = "hx";
+        merge.conflictStyle = "zdiff3";
+        diff.algorithm = "histogram";
+        diff.colorMoved = "zebra";
+        rerere.enabled = true;
+        fetch.prune = true;
+        rebase.autoStash = true;
+        column.ui = "auto";
+        branch.sort = "-committerdate";
         alias = {
           hdiff = "!hunk diff";
           hshow = "!hunk show";
@@ -65,12 +149,33 @@ in {
       };
     };
 
+    delta = {
+      enable = true;
+      enableGitIntegration = true;
+      options = {
+        features = "line-numbers";
+        navigate = true;
+        side-by-side = true;
+      };
+    };
+
     jujutsu = {
       enable = true;
       ediff = false;
-      settings.user = {
-        name = "molly.computer";
-        email = "molly@molly.computer";
+      settings = {
+        user = {
+          name = "molly.computer";
+          email = "molly@molly.computer";
+        };
+        aliases = {
+          l = "log -r '::@'";
+          ll = "log -r 'all()'";
+        };
+        signing = {
+          behavior = "own";
+          backend = "ssh";
+          key = "~/.ssh/mol.pub";
+        };
       };
     };
 
@@ -126,6 +231,15 @@ in {
         ];
         userSettings = {
           "editor.fontFamily" = lib.mkForce "'${config.stylix.fonts.monospace.name}'";
+          "editor.formatOnSave" = true;
+          "editor.tabSize" = 2;
+          "editor.minimap.enabled" = false;
+          "editor.renderWhitespace" = "boundary";
+          "files.autoSave" = "onFocusChange";
+          "telemetry.telemetryLevel" = "off";
+          "update.mode" = "none";
+          "extensions.autoUpdate" = false;
+          "workbench.startupEditor" = "none";
         };
       };
     };
@@ -135,6 +249,64 @@ in {
       profiles.mollyw = {
         id = 0;
         isDefault = true;
+
+        search = {
+          force = true;
+          default = "ddg";
+        };
+
+        bookmarks = {
+          force = true;
+          settings = [
+            {
+              name = "SearXNG";
+              url = "https://search.daze.lol/";
+              keyword = "s";
+            }
+            {
+              name = "NixOS Search";
+              url = "https://search.nixos.org/packages";
+              keyword = "np";
+            }
+            {
+              name = "NixOS Wiki";
+              url = "https://wiki.nixos.org/";
+              keyword = "nw";
+            }
+            "separator"
+            {
+              name = "Tangled";
+              url = "https://tangled.org/molly.computer";
+            }
+            {
+              name = "Gitea";
+              url = "https://git.purplish.blue/molly";
+            }
+          ];
+        };
+
+        containersForce = true;
+        containers = {
+          personal = {
+            name = "Personal";
+            color = "blue";
+            icon = "fingerprint";
+            id = 1;
+          };
+          work = {
+            name = "Work";
+            color = "orange";
+            icon = "briefcase";
+            id = 2;
+          };
+          shopping = {
+            name = "Shopping";
+            color = "green";
+            icon = "cart";
+            id = 3;
+          };
+        };
+
         settings = {
           # Use regular Firefox default fonts instead of the system-wide
           # ComicShannsMono nerd font
@@ -194,7 +366,27 @@ in {
       };
     };
 
-    btop.enable = true;
+    btop = {
+      enable = true;
+      settings = {
+        vim_keys = true;
+        update_ms = 1000;
+        proc_sorting = "cpu lazy";
+        shown_boxes = "cpu mem net proc";
+      };
+    };
+
+    thunderbird = {
+      enable = true;
+      profiles.default = {
+        isDefault = true;
+        settings = {
+          "mail.spellcheck.inline" = true;
+          "datareporting.healthreport.uploadEnabled" = false;
+          "toolkit.telemetry.enabled" = false;
+        };
+      };
+    };
   };
 
   home.packages = [
@@ -204,7 +396,6 @@ in {
     pkgs.proton-vpn
     pkgs.prismlauncher
     pkgs.signal-desktop
-    pkgs.thunderbird
     pkgs.unzip
     pkgs.rns
     pkgs.lxmf

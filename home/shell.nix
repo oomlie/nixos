@@ -6,6 +6,17 @@
       completionInit = "autoload -U compinit && compinit -u";
       autosuggestion.enable = true;
       syntaxHighlighting.enable = true;
+      historySubstringSearch.enable = true;
+      setOptions = ["HIST_VERIFY" "NO_BEEP" "COMPLETE_ALIASES"];
+      shellGlobalAliases = {
+        G = "| grep";
+        L = "| less";
+      };
+      initContent = ''
+        zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+        zstyle ':completion:*' menu select
+        zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
+      '';
       history = {
         size = 50000;
         ignoreDups = true;
@@ -26,13 +37,13 @@
           ForwardAgent = false;
           AddKeysToAgent = "no";
           Compression = false;
-          ServerAliveInterval = 0;
+          ServerAliveInterval = 60;
           ServerAliveCountMax = 3;
           HashKnownHosts = false;
           UserKnownHostsFile = "~/.ssh/known_hosts";
-          ControlMaster = "no";
-          ControlPath = "~/.ssh/master-%r@%n:%p";
-          ControlPersist = "no";
+          ControlMaster = "auto";
+          ControlPath = "~/.ssh/cm-%r@%h:%p";
+          ControlPersist = "10m";
         };
         halo = {
           HostName = "192.168.0.169";
@@ -62,12 +73,29 @@
       nix-direnv.enable = true;
     };
 
-    fzf.enable = true;
+    fzf = {
+      enable = true;
+      defaultOptions = [
+        "--height=~40%"
+        "--layout=reverse"
+        "--border"
+        "--info=inline"
+        "--bind=ctrl-j:down,ctrl-k:up"
+      ];
+    };
     zoxide.enable = true;
-    bat.enable = true;
+    bat = {
+      enable = true;
+      config = {
+        pager = "less -FR";
+        style = "numbers,changes,header";
+      };
+    };
     eza = {
       enable = true;
       icons = "auto";
+      git = true;
+      extraOptions = ["--group-directories-first" "--header" "--git-ignore"];
     };
     nnn = {
       enable = true;

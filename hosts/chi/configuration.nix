@@ -52,6 +52,18 @@
     libraries = with pkgs; [freetype fontconfig libpng];
   };
 
+  # Desktop integration
+  programs.appimage = {
+    enable = true;
+    binfmt = true;
+  };
+  programs.gnupg.agent = {
+    enable = true;
+    pinentryPackage = pkgs.pinentry-gnome3;
+  };
+  programs.nix-index.enable = true;
+  services.gvfs.enable = true;
+
   # doas alongside sudo for users in the wheel group
   security.doas = {
     enable = true;
@@ -71,6 +83,7 @@
     powertop
     age
     sops
+    cloudflared
   ];
 
   # Skip default system packages (nano, perl, rsync, strace)
