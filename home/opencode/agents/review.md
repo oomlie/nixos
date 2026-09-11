@@ -1,7 +1,7 @@
 ---
 description: Reviews the current changeset for bugs, regressions, security risks, and missing tests without modifying files.
 mode: subagent
-model: openai/gpt-5.6-luna-fast
+model: route/gpt-5.6-luna
 temperature: 0.1
 permission:
   edit: deny

@@ -2,6 +2,7 @@
   inputs,
   lib,
   pkgs,
+  giteaCredentialHelper,
   ...
 }: let
   models = {
@@ -36,18 +37,6 @@
       exec ${pkgs.opencode}/bin/opencode "$@"
     '';
   };
-  giteaCredentialHelper = pkgs.writeShellScript "git-credential-purplish" ''
-    if [[ "''${1:-}" != get ]]; then
-      exit 0
-    fi
-
-    token="$(${pkgs.libsecret}/bin/secret-tool lookup service gitea host git.purplish.blue user molly)"
-    if [[ -z "$token" ]]; then
-      exit 1
-    fi
-
-    printf '%s\n' "username=molly" "password=$token"
-  '';
 in {
   programs.opencode = {
     enable = true;
@@ -131,8 +120,8 @@ in {
             baseURL = "https://route.daze.lol/v1";
             apiKey = "{env:ROUTE_API_KEY}";
           };
-          models =
-            {
+          models = let
+            explicitModels = {
               "claude-haiku-4-5-20251001" = {
                 name = "Claude 4.5 Haiku";
                 attachment = true;
@@ -651,8 +640,11 @@ in {
                 name = "wan2.7-image-pro";
                 reasoning = false;
               };
-            }
-            // lib.genAttrs [
+            };
+          in
+            explicitModels
+            // lib.genAttrs
+            (lib.subtractLists (builtins.attrNames explicitModels) [
               "claude-3-5-haiku-20241022"
               "claude-3-7-sonnet-20250219"
               "claude-fable-5"
@@ -684,7 +676,8 @@ in {
               "qwen3.7-plus"
               "qwen3.8-flash"
               "qwen3.8-max"
-            ] (id: {
+            ])
+            (id: {
               name = id;
               reasoning = true;
             });

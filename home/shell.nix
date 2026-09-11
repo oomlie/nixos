@@ -1,4 +1,4 @@
-_: {
+{pkgs, ...}: {
   programs = {
     zsh = {
       enable = true;
@@ -69,6 +69,64 @@ _: {
       enable = true;
       icons = "auto";
     };
-    nnn.enable = true;
+    nnn = {
+      enable = true;
+      package = pkgs.nnn.override {withNerdIcons = true;};
+      quitcd = true;
+      bookmarks = {
+        d = "~/Documents";
+        D = "~/Downloads";
+        p = "~/Pictures";
+        v = "~/Videos";
+        n = "~/nixos";
+        c = "~/.config";
+        P = "~/Projects";
+      };
+      # -a sets up NNN_FIFO for preview-tui; -d detail, -H hidden, -e open text in $EDITOR, -U user/group
+      options = {
+        a = true;
+        d = true;
+        H = true;
+        e = true;
+        U = true;
+      };
+      plugins = {
+        src = "${pkgs.nnn}/share/plugins";
+        mappings = {
+          c = "fzcd";
+          f = "finder";
+          p = "preview-tui";
+          v = "imgview";
+          d = "dups";
+          g = "gitroot";
+          m = "nmount";
+          n = "bulknew";
+          r = "renamer";
+        };
+      };
+      extraPackages = with pkgs; [
+        fzf
+        findutils
+        imv
+        chafa
+        bat
+        less
+        ffmpegthumbnailer
+        poppler-utils
+        mediainfo
+        unzip
+        gnutar
+        file
+        exiftool
+        man
+        udisks2
+        trash-cli
+      ];
+    };
+  };
+
+  home.sessionVariables = {
+    NNN_TERMINAL = "foot";
+    NNN_TRASH = "1";
   };
 }

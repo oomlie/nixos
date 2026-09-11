@@ -81,74 +81,6 @@ Sources used for this setup:
    sudo nixos-rebuild switch --flake .#chi
    ```
 
-## opencode-kimi-full
-
-URL: https://github.com/lemon07r/opencode-kimi-full
-
-An opencode plugin that makes the Kimi Code path work like the official `kimi-cli`.
-Instead of a generic OpenAI-compatible provider, it uses Kimi's OAuth device flow and Kimi-specific request behavior.
-
-### what it does
-
-- Authenticates via official Kimi OAuth against `https://auth.kimi.com`
-- Talks to `https://api.kimi.com/coding/v1` using `@ai-sdk/openai-compatible`
-- Sends the same `User-Agent` / `X-Msh-*` fingerprint headers as `kimi-cli`
-- Reuses `~/.kimi/device_id` for `X-Msh-Device-Id`
-- Adds `prompt_cache_key`, `thinking`, and `reasoning_effort` for `kimi-for-coding` requests
-- Discovers the authoritative model slug, display name, context length, and media-input capabilities from `/coding/v1/models`
-- Stores tokens in opencode's auth store and mirrors `kimi-cli`'s refresh / retry behavior
-- Provides a `/kimi:usage` TUI command to check subscription usage
-
-### quick start (manual)
-
-1. Install the plugin: `opencode plugin opencode-kimi-full --global`
-2. Log in: `opencode auth login -p kimi-for-coding-oauth`
-3. Add the provider block from the repo's README to `~/.config/opencode/opencode.json`
-4. Select `kimi-for-coding-oauth/kimi-for-coding` in opencode
-
-### nixos integration in this config
-
-This NixOS config handles steps 1 and 3 automatically:
-
-- Home Manager's `programs.opencode` module installs OpenCode and writes its configuration.
-- `home/opencode.nix` pins `opencode-kimi-full` 1.4.0 and defines the full
-  `kimi-for-coding-oauth` provider block.
-- OpenCode resolves the pinned plugin from its normal package cache; rebuilds do not run an
-  imperative plugin-install activation step.
-
-After running `sudo nixos-rebuild switch --flake .#chi`, the only remaining step is:
-
-```bash
-opencode auth login -p kimi-for-coding-oauth
-```
-
-Then select `kimi-for-coding-oauth/kimi-for-coding` in opencode.
-
-### pre-configured provider block
-
-The `~/.config/opencode/opencode.json` written by Home Manager contains:
-
-- `plugin`: `["opencode-kimi-full@1.4.0"]`
-- `provider.kimi-for-coding-oauth`:
-  - `name`: "Kimi For Coding (OAuth)"
-  - `npm`: "@ai-sdk/openai-compatible"
-  - `options.baseURL`: "https://api.kimi.com/coding/v1"
-  - `models.kimi-for-coding`:
-    - `attachment`: true
-    - `reasoning`: true
-    - `modalities.input`: ["text", "image"]
-    - `modalities.output`: ["text"]
-    - variants: `off`, `auto`, `low`, `medium`, `high`
-
-### requirements
-
-- `opencode` >= 1.4.6
-- Active **Kimi For Coding** subscription
-
-### license
-
-MIT
-
 ---
 
 ## Development environment
@@ -180,17 +112,15 @@ Git is fully configured through `programs.git`:
 - Jujutsu is enabled with the same identity as Git.
 - Difftastic is installed from nixpkgs and exposed through `git dft`.
 - OpenCode's built-in `general`, `explore`, and `scout` subagents use
-  `openai/gpt-5.6-luna-fast`; its lightweight internal tasks use the same model.
+  `route/gpt-5.6-luna`; its lightweight internal tasks use the same model.
 - OpenCode includes focused `nix` and read-only `review` agents, reusable commands, and the
   Hunk live-review skill.
 
 ### Future agent tooling
 
-- Add `sops-nix` or `agenix` and rotate credentials found in old local backup files.
+- Rotate credentials found in old local backup files now that `sops-nix` is integrated.
 - Evaluate colocated Jujutsu repositories after learning its change-based workflow.
 - Evaluate OpenCode references for shared documentation repositories.
-- Package the Kimi plugin and custom tool dependencies fully in Nix if runtime package caching
-  becomes unreliable.
 - Evaluate a local Ollama utility model for non-subscription background work.
 
 ### IDE: VSCodium
@@ -226,7 +156,7 @@ The `@` character in the upstream filenames is avoided by renaming the downloads
 
 ### Backup behavior
 
-`flake.nix` sets `home-manager.backupFileExtension = "hm-backup"`, so any existing dotfiles that Home Manager wants to overwrite are backed up instead of causing the activation to fail.
+`flake.nix` sets `home-manager.backupCommand` to a script that moves any existing dotfiles Home Manager wants to overwrite to `<path>.hm-backup` (then `.hm-backup.1`, `.hm-backup.2`, …), so activation never fails on a pre-existing file.
 
 ---
 

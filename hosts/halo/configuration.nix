@@ -139,7 +139,14 @@
   networking.firewall.allowedTCPPorts = [4242];
 
   # Services
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = "no";
+    };
+  };
 
   # Swap (zram for OOM protection under heavy iGPU workloads)
   zramSwap.enable = true;

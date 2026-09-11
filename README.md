@@ -10,7 +10,7 @@ The canonical repository lives on Tangled:
 | host | role | notes |
 | --- | --- | --- |
 | **chi** | Framework 12 laptop | Desktop; Niri compositor, Noctalia shell, Stylix theming from the wallpaper |
-| **halo** | Strix Halo server | Headless; Gitea/Tangled runners, Podman containers, sops-managed secrets |
+| **halo** | Strix Halo server | Headless; Tangled knot/spindle, Podman containers, sops-managed secrets |
 
 ## layout
 
@@ -20,7 +20,7 @@ modules/common.nix   — settings shared by chi and halo (locale, firewall, nix)
 hosts/chi/           — Framework 12 config, desktop modules, generated hardware config
 hosts/halo/          — server config and its separate Home Manager config
 home/                — Home Manager modules for chi (shell, apps, niri, opencode, …)
-pkgs/                — locally packaged software (polytoken, jagex-launcher)
+pkgs/                — locally packaged software (jagex-launcher)
 secrets/             — SOPS-encrypted credentials only; never store plaintext here
 docs/secrets.md      — sops-nix key locations, editing, and rotation notes
 wallpapers/          — wallpapers; the default also seeds the Stylix theme
@@ -60,18 +60,19 @@ The formatter is treefmt with Alejandra, Statix, and deadnix. `nix flake check`
 only runs the formatting check, so evaluate both hosts separately after touching
 `flake.nix`, `flake.lock`, `modules/common.nix`, or shared inputs.
 
-## flake outputs
+## jagex-launcher
 
-- `packages.<system>.polytoken` (and `default`) — the pinned Polytoken binary.
-- `devShells.<system>.polytoken` (and `default`) — shell with Polytoken on `PATH`.
+The RuneScape launcher is not part of the default user profile. Run it from its
+own shell instead:
 
 ```bash
-nix run .#polytoken -- --version
-nix develop
+nix-shell pkgs/jagex-launcher
+jagex-launcher
 ```
 
-Locally packaged software cannot self-update from the read-only Nix store. Bump
-the version and platform hashes in `pkgs/` instead.
+The package wraps a bundled AppImage, so it cannot self-update from the
+read-only Nix store; bump `pkgs/jagex-launcher/package.nix` when a new build is
+available.
 
 ## secrets
 
@@ -116,5 +117,5 @@ nix flake check
 
 ## notes
 
-See [`notes.md`](notes.md) for tablet support, the opencode + Kimi integration,
-pulling this config onto a new system, and other miscellaneous notes.
+See [`notes.md`](notes.md) for tablet support, agent tooling, pulling this
+config onto a new system, and other miscellaneous notes.

@@ -1,7 +1,7 @@
 ---
 description: Investigates and implements focused NixOS, Home Manager, and flake changes using repository conventions.
 mode: subagent
-model: openai/gpt-5.6-luna-fast
+model: route/gpt-5.6-luna
 temperature: 0.1
 permission:
   edit: allow

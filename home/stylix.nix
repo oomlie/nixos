@@ -44,8 +44,6 @@ in {
       helix.enable = true;
       foot.enable = true;
       btop.enable = true;
-      emacs.enable = true;
-      fish.enable = true;
       fontconfig.enable = true;
       fzf.enable = true;
       opencode.enable = true;

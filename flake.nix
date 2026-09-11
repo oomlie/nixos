@@ -1,11 +1,6 @@
 {
   description = "NixOS configurations for chi and halo";
 
-  nixConfig = {
-    extra-substituters = ["https://noctalia.cachix.org"];
-    extra-trusted-public-keys = ["noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="];
-  };
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager = {
@@ -28,14 +23,14 @@
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-doom-emacs-unstraightened = {
-      url = "github:marienz/nix-doom-emacs-unstraightened";
-    };
     stylix = {
       url = "github:danth/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    noctalia.url = "github:noctalia-dev/noctalia/cachix";
+    noctalia = {
+      url = "github:noctalia-dev/noctalia/cachix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     noctalia-greeter = {
       url = "github:noctalia-dev/noctalia-greeter";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -67,11 +62,7 @@
     ...
   }: let
     system = "x86_64-linux";
-    pkgs = import nixpkgs {
-      inherit system;
-      config.allowUnfree = true;
-    };
-    polytoken = pkgs.callPackage ./pkgs/polytoken/package.nix {};
+    pkgs = import nixpkgs {inherit system;};
     treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
     homeManagerBackup = pkgs.writeShellScript "home-manager-backup" ''
       target="$1"
@@ -86,18 +77,6 @@
       ${pkgs.coreutils}/bin/mv -- "$target" "$backup"
     '';
   in {
-    packages.${system} = {
-      inherit polytoken;
-      default = polytoken;
-    };
-
-    devShells.${system} = {
-      polytoken = pkgs.mkShellNoCC {
-        packages = [polytoken];
-      };
-      default = self.devShells.${system}.polytoken;
-    };
-
     nixosConfigurations = {
       # Framework 12 laptop (desktop)
       chi = nixpkgs.lib.nixosSystem {

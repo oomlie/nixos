@@ -20,7 +20,6 @@
 
 - Only encrypted SOPS YAML belongs under `secrets/`. Edit halo secrets with `sops secrets/halo.yaml`; age private keys stay at `~/.config/sops/age/keys.txt` on chi and `/var/lib/sops-nix/keys.txt` on halo, outside Git.
 - After changing a halo secret, deploy halo before restarting its consumer so `/run/secrets/halo/*` is rematerialized.
-- Polytoken cannot self-update from the read-only Nix store. Update its version and platform hashes in `pkgs/polytoken/package.nix` and verify with `nix run .#polytoken -- --version`.
 
 ## Deployment
 

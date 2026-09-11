@@ -3,6 +3,7 @@
   lib,
   pkgs,
   config,
+  giteaCredentialHelper,
   ...
 }: let
   inherit (pkgs.stdenv.hostPlatform) system;
@@ -33,18 +34,6 @@
       XDG_CONFIG_HOME="$config_dir" ${pkgs.tea}/bin/tea "$@"
     '';
   };
-  giteaCredentialHelper = pkgs.writeShellScript "git-credential-purplish" ''
-    if [[ "''${1:-}" != get ]]; then
-      exit 0
-    fi
-
-    token="$(${pkgs.libsecret}/bin/secret-tool lookup service gitea host git.purplish.blue user molly)"
-    if [[ -z "$token" ]]; then
-      exit 1
-    fi
-
-    printf '%s\n' "username=molly" "password=$token"
-  '';
 in {
   programs = {
     helix = {
