@@ -43,6 +43,22 @@ nix eval --raw .#nixosConfigurations.chi.config.system.build.toplevel.drvPath
 nix eval --raw .#nixosConfigurations.halo.config.system.build.toplevel.drvPath
 ```
 
+## polytoken
+
+Polytoken is packaged from its pinned upstream Linux binary and installed on
+`chi` through Home Manager. The same package is available directly from the
+flake:
+
+```bash
+nix run .#polytoken -- --version
+nix develop .#polytoken
+```
+
+Polytoken's self-updater cannot replace the binary in the read-only Nix store.
+Update the version and hashes in `pkgs/polytoken/package.nix` instead. The
+launch-time update prompt can be disabled with `updates.automatic_check = false`
+in the global Polytoken configuration.
+
 ## updating inputs
 
 Update inputs deliberately, review the lockfile, and test both hosts before

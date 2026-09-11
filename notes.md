@@ -243,3 +243,7 @@ Confirm the `programs.nh.flake` path in `hosts/chi/configuration.nix` matches wh
 ### Fonts
 
 ComicShannsMono Nerd Font is set as the system-wide default via Stylix and `modules/common.nix`; Firefox uses Noto fonts instead (see `home/apps.nix`). Point sizes may need tweaking on the real laptop.
+
+## Removed: trenchbroom
+
+The custom `pkgs/trenchbroom` AppImage wrapper was removed from `home/default.nix` because it was untracked and broke flake evaluation. nixpkgs no longer provides `trenchbroom` ("removed due to numerous vulnerabilities in freeimage"), so a replacement needs research before Quake-family level editing is available again.

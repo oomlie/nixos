@@ -67,9 +67,37 @@
     ...
   }: let
     system = "x86_64-linux";
-    pkgs = nixpkgs.legacyPackages.${system};
+    pkgs = import nixpkgs {
+      inherit system;
+      config.allowUnfree = true;
+    };
+    polytoken = pkgs.callPackage ./pkgs/polytoken/package.nix {};
     treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
+    homeManagerBackup = pkgs.writeShellScript "home-manager-backup" ''
+      target="$1"
+      backup="$target.hm-backup"
+      suffix=1
+
+      while [[ -e "$backup" || -L "$backup" ]]; do
+        backup="$target.hm-backup.$suffix"
+        suffix=$((suffix + 1))
+      done
+
+      ${pkgs.coreutils}/bin/mv -- "$target" "$backup"
+    '';
   in {
+    packages.${system} = {
+      inherit polytoken;
+      default = polytoken;
+    };
+
+    devShells.${system} = {
+      polytoken = pkgs.mkShellNoCC {
+        packages = [polytoken];
+      };
+      default = self.devShells.${system}.polytoken;
+    };
+
     nixosConfigurations = {
       # Framework 12 laptop (desktop)
       chi = nixpkgs.lib.nixosSystem {
@@ -85,7 +113,7 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "hm-backup";
+            home-manager.backupCommand = homeManagerBackup;
             home-manager.extraSpecialArgs = {inherit inputs;};
             home-manager.sharedModules = [
               stylix.homeModules.stylix
@@ -107,7 +135,7 @@
           home-manager.nixosModules.home-manager
           inputs.sops-nix.nixosModules.sops
           {
-            home-manager.backupFileExtension = "hm-backup";
+            home-manager.backupCommand = homeManagerBackup;
             home-manager.extraSpecialArgs = {inherit inputs;};
           }
         ];

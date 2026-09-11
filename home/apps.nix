@@ -210,7 +210,18 @@ in {
 
   home.packages = [
     pkgs.difftastic
+    pkgs.proton-authenticator
+    pkgs.proton-pass
+    pkgs.proton-vpn
+    pkgs.prismlauncher
+    pkgs.signal-desktop
     pkgs.thunderbird
+    pkgs.unzip
+    pkgs.rns
+    pkgs.lxmf
+    pkgs.nomadnet
+    pkgs.sideband
+    pkgs.xclip
     tea
   ];
 }

@@ -5,8 +5,9 @@
     ./foot.nix
     ./niri.nix
     ./noctalia.nix
-    ./oh-my-pi.nix
     ./opencode.nix
+    ./polytoken.nix
+    ./qutebrowser.nix
     ./shell.nix
     ./satty.nix
     ./stylix.nix
@@ -24,7 +25,7 @@
       xwayland-satellite
       equibop
 
-      # Game engine
+      # Game development
       godot_4
 
       # RuneScape launcher

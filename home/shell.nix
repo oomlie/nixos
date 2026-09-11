@@ -19,19 +19,38 @@ _: {
 
     ssh = {
       enable = true;
-      matchBlocks = {
+      # Make the current defaults explicit before Home Manager removes them.
+      enableDefaultConfig = false;
+      settings = {
+        "*" = {
+          ForwardAgent = false;
+          AddKeysToAgent = "no";
+          Compression = false;
+          ServerAliveInterval = 0;
+          ServerAliveCountMax = 3;
+          HashKnownHosts = false;
+          UserKnownHostsFile = "~/.ssh/known_hosts";
+          ControlMaster = "no";
+          ControlPath = "~/.ssh/master-%r@%n:%p";
+          ControlPersist = "no";
+        };
         halo = {
-          hostname = "192.168.0.169";
-          user = "molly";
+          HostName = "192.168.0.169";
+          User = "molly";
         };
         chi = {
-          hostname = "192.168.0.216";
-          user = "mollyw";
+          HostName = "192.168.0.216";
+          User = "mollyw";
         };
         "knot-ssh.daze.lol" = {
-          user = "git";
-          identityFile = "~/.ssh/mol";
-          proxyCommand = "cloudflared access ssh --hostname %h";
+          User = "git";
+          IdentityFile = "~/.ssh/mol";
+          ProxyCommand = "cloudflared access ssh --hostname %h";
+        };
+        "tangled.org" = {
+          User = "git";
+          IdentityFile = "~/.ssh/mol";
+          AddressFamily = "inet";
         };
       };
     };

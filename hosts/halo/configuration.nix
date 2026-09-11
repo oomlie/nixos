@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   inputs,
@@ -22,6 +23,8 @@
     "ttm.pages_limit=32505856"
     "ttm.page_pool_size=32505856"
   ];
+
+  hardware.graphics.enable = true;
 
   # vsock device for spindle microVM guest-agent communication
   boot.kernelModules = ["vsock"];
@@ -63,11 +66,42 @@
     };
   };
 
+  # SearXNG (private metasearch; expose through the existing Cloudflare tunnel)
+  services.searx = {
+    enable = true;
+    environmentFile = config.sops.secrets."halo/searx-env".path;
+    settings = {
+      general.instance_name = "daze search";
+      search.formats = [
+        "html"
+        "json"
+      ];
+      server = {
+        bind_address = "127.0.0.1";
+        port = 3016;
+        base_url = "https://search.daze.lol/";
+        secret_key = "$SEARX_SECRET_KEY";
+        limiter = true;
+      };
+    };
+    redisCreateLocally = true;
+    limiterSettings.botdetection = {
+      trusted_proxies = [
+        "127.0.0.0/8"
+        "::1"
+      ];
+      ip_lists.pass_ip = [
+        "127.0.0.0/8"
+        "::1"
+      ];
+    };
+  };
+
   # User account
   users.users.molly = {
     isNormalUser = true;
     description = "molly";
-    extraGroups = ["networkmanager" "wheel" "video" "render" "docker"];
+    extraGroups = ["networkmanager" "wheel" "video" "render" "docker" "dialout"];
   };
 
   # Home Manager
@@ -81,7 +115,28 @@
     docker-compose
     sops
     age
+    rns
+    lxmf
+    nomadnet
   ];
+
+  # Reticulum Network Stack daemon
+  systemd.services.rnsd = {
+    description = "Reticulum Network Stack Daemon";
+    after = ["network.target"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      Type = "simple";
+      User = "molly";
+      Group = "users";
+      ExecStart = "${pkgs.rns}/bin/rnsd --config /home/molly/.reticulum";
+      Restart = "on-failure";
+      RestartSec = "10s";
+    };
+  };
+
+  networking.firewall.allowedUDPPorts = [2965 29665];
+  networking.firewall.allowedTCPPorts = [4242];
 
   # Services
   services.openssh.enable = true;
@@ -123,6 +178,12 @@
     group = "users";
     mode = "0400";
   };
-
+  sops.secrets."halo/searx-env" = {
+    sopsFile = ../../secrets/halo.yaml;
+    owner = "searx";
+    group = "searx";
+    mode = "0400";
+    restartUnits = ["searx.service"];
+  };
   system.stateVersion = "26.05";
 }

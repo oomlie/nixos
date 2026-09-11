@@ -7,7 +7,7 @@
   models = {
     primary = "route/gpt-5.6-sol";
     small = "route/gpt-5.6-luna";
-    worker = "route/k3-256k";
+    worker = "route/gpt-5.6-luna";
   };
   opencode = pkgs.writeShellApplication {
     name = "opencode";
@@ -50,6 +50,7 @@ in {
     settings = {
       model = models.primary;
       small_model = models.small;
+      enabled_providers = ["route"];
       references.agent-wiki = {
         path = "./wiki";
         description = "Private, curated cross-session knowledge for durable decisions, preferences, project context, and runbooks. Search it before asking for information that may have been established previously.";
@@ -98,6 +99,8 @@ in {
       ];
       formatter = true;
       lsp = true;
+
+      plugin = [./opencode/plugins/route-models.js];
 
       mcp.firecrawl = {
         type = "remote";
@@ -355,6 +358,32 @@ in {
                   output = 128000;
                 };
               };
+              "deepseek-platform-flash" = {
+                name = "DeepSeek V4.1 Flash (Platform)";
+                attachment = true;
+                reasoning = true;
+                modalities = {
+                  input = ["text" "image"];
+                  output = ["text"];
+                };
+                limit = {
+                  context = 1048576;
+                  output = 393216;
+                };
+              };
+              "deepseek-platform-v4-pro" = {
+                name = "DeepSeek V4 Pro (Platform)";
+                attachment = false;
+                reasoning = true;
+                modalities = {
+                  input = ["text"];
+                  output = ["text"];
+                };
+                limit = {
+                  context = 1048576;
+                  output = 393216;
+                };
+              };
               "gpt-5.5" = {
                 name = "GPT-5.5";
                 attachment = true;
@@ -365,34 +394,6 @@ in {
                 };
                 limit = {
                   context = 272000;
-                  output = 128000;
-                };
-              };
-              "gpt-5.4" = {
-                name = "GPT-5.4";
-                attachment = true;
-                reasoning = true;
-                modalities = {
-                  input = ["text" "image" "pdf"];
-                  output = ["text"];
-                };
-                limit = {
-                  context = 1050000;
-                  input = 922000;
-                  output = 128000;
-                };
-              };
-              "gpt-5.4-mini" = {
-                name = "GPT-5.4 Mini";
-                attachment = true;
-                reasoning = true;
-                modalities = {
-                  input = ["text" "image" "pdf"];
-                  output = ["text"];
-                };
-                limit = {
-                  context = 400000;
-                  input = 272000;
                   output = 128000;
                 };
               };
@@ -571,58 +572,6 @@ in {
                   output = 32768;
                 };
               };
-              "kimi-k2" = {
-                name = "Kimi K2";
-                attachment = false;
-                reasoning = false;
-                modalities = {
-                  input = ["text"];
-                  output = ["text"];
-                };
-                limit = {
-                  context = 131072;
-                  output = 32768;
-                };
-              };
-              "kimi-k2-thinking" = {
-                name = "Kimi K2 Thinking";
-                attachment = false;
-                reasoning = true;
-                modalities = {
-                  input = ["text"];
-                  output = ["text"];
-                };
-                limit = {
-                  context = 131072;
-                  output = 32768;
-                };
-              };
-              "kimi-k2.5" = {
-                name = "Kimi K2.5";
-                attachment = true;
-                reasoning = true;
-                modalities = {
-                  input = ["text" "image" "video"];
-                  output = ["text"];
-                };
-                limit = {
-                  context = 262144;
-                  output = 32768;
-                };
-              };
-              "kimi-k2.6" = {
-                name = "Kimi K2.6";
-                attachment = true;
-                reasoning = true;
-                modalities = {
-                  input = ["text" "image" "video"];
-                  output = ["text"];
-                };
-                limit = {
-                  context = 262144;
-                  output = 65536;
-                };
-              };
               "kimi-for-coding" = {
                 name = "Kimi K2.7 Code";
                 attachment = true;
@@ -641,60 +590,95 @@ in {
                   output = 32768;
                 };
               };
+              "qwen-audio-3.0-realtime-plus" = {
+                name = "Qwen Audio 3.0 Realtime Plus";
+                reasoning = false;
+              };
+              "qwen-audio-3.0-tts-plus" = {
+                name = "Qwen Audio 3.0 TTS Plus";
+                reasoning = false;
+              };
+              "gemini-3.1-flash-image" = {
+                name = "gemini-3.1-flash-image";
+                reasoning = false;
+              };
+              "gpt-image-1.5" = {
+                name = "gpt-image-1.5";
+                reasoning = false;
+              };
+              "gpt-image-2" = {
+                name = "gpt-image-2";
+                reasoning = false;
+              };
+              "grok-imagine-image" = {
+                name = "grok-imagine-image";
+                reasoning = false;
+              };
+              "grok-imagine-image-2.0" = {
+                name = "grok-imagine-image-2.0";
+                reasoning = false;
+              };
+              "grok-imagine-image-quality" = {
+                name = "grok-imagine-image-quality";
+                reasoning = false;
+              };
+              "grok-imagine-video" = {
+                name = "grok-imagine-video";
+                reasoning = false;
+              };
+              "grok-imagine-video-1.5" = {
+                name = "grok-imagine-video-1.5";
+                reasoning = false;
+              };
+              "grok-imagine-video-1.5-preview" = {
+                name = "grok-imagine-video-1.5-preview";
+                reasoning = false;
+              };
+              "wan2.7-image" = {
+                name = "wan2.7-image";
+                reasoning = false;
+              };
+              "wan2.7-image-pro" = {
+                name = "wan2.7-image-pro";
+                reasoning = false;
+              };
             }
             // lib.genAttrs [
               "claude-3-5-haiku-20241022"
               "claude-3-7-sonnet-20250219"
               "claude-fable-5"
+              "claude-fable-5-1"
               "claude-haiku-4-5-20251001"
               "claude-opus-4-20250514"
               "claude-opus-4-1-20250805"
               "claude-opus-4-5-20251101"
+              "claude-opus-4-6-thinking"
               "claude-opus-4-7"
               "claude-opus-4-8"
               "claude-opus-5"
               "claude-sonnet-4-20250514"
               "claude-sonnet-4-5-20250929"
+              "deepseek-v4-flash-0731"
+              "deepseek-v4-pro"
+              "gemini-3-flash"
               "gemini-3.1-flash-lite"
               "gemini-3.1-pro-low"
-              "gemini-3-flash"
-              "gemini-3-flash-agent"
-              "gemini-3.5-flash-extra-low"
-              "gemini-3.5-flash-low"
               "gemini-3.6-flash-high"
               "gemini-3.7-flash-high"
+              "gemini-3.8-flash-high"
               "gemini-pro-agent"
+              "glm-5.2"
+              "gpt-6-astra"
               "gpt-oss-120b-medium"
-              "kimi-k2.7-code"
-              "kimi-k2.7-code-highspeed"
-              "kimi-k3"
-              "kimi-k3-256k"
+              "qwen3.6-flash"
+              "qwen3.7-max"
+              "qwen3.7-plus"
+              "qwen3.8-flash"
+              "qwen3.8-max"
             ] (id: {
               name = id;
               reasoning = true;
             });
-        };
-        halo = {
-          name = "Strix Halo (halo.daze.lol)";
-          npm = "@ai-sdk/openai-compatible";
-          options = {
-            baseURL = "https://gateway.ai.cloudflare.com/v1/ab50bec72354666a941823793fef426a/halo/custom-halo/v1";
-            apiKey = "{env:HALO_API_KEY}";
-          };
-          models."gpt-oss-120b" = {
-            name = "gpt-oss 120B MXFP4 (Strix Halo)";
-            attachment = false;
-            reasoning = true;
-            modalities = {
-              input = ["text"];
-              output = ["text"];
-            };
-            options = {};
-            limit = {
-              context = 131072;
-              output = 8192;
-            };
-          };
         };
       };
     };
