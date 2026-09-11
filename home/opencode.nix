@@ -9,6 +9,12 @@
     small = "route/gpt-5.6-luna";
     worker = "route/gpt-5.6-luna";
   };
+  ponytail = pkgs.fetchFromGitHub {
+    owner = "DietrichGebert";
+    repo = "ponytail";
+    rev = "0a4dd63ad4541f4f655c4108a295916f3c1d8fda";
+    hash = "sha256-8cYggVltBAlZ/Zj4pl1bOu7mQdZFXCmDGW4RSpvRA+w=";
+  };
   opencode = pkgs.writeShellApplication {
     name = "opencode";
     runtimeInputs = [pkgs.libsecret];
@@ -100,7 +106,10 @@ in {
       formatter = true;
       lsp = true;
 
-      plugin = [./opencode/plugins/route-models.js];
+      plugin = [
+        ./opencode/plugins/route-models.js
+        "${ponytail}/.opencode/plugins/ponytail.mjs"
+      ];
 
       mcp.firecrawl = {
         type = "remote";
