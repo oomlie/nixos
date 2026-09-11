@@ -11,6 +11,10 @@
     inputs.tangled.nixosModules.spindle
   ];
 
+  # Allow the admin user to copy locally-built (unsigned) closures during
+  # `nixos-rebuild --target-host` deployments from chi.
+  nix.settings.trusted-users = ["root" "molly"];
+
   # Bootloader
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10;
