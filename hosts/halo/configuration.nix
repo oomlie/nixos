@@ -13,7 +13,12 @@
 
   # Allow the admin user to copy locally-built (unsigned) closures during
   # `nixos-rebuild --target-host` deployments from chi.
-  nix.settings.trusted-users = ["root" "molly"];
+  nix.settings = {
+    trusted-users = ["root" "molly"];
+    # Prebuilt tranquil-pds artifacts from upstream CI.
+    substituters = ["https://tranquil.cachix.org"];
+    trusted-public-keys = ["tranquil.cachix.org-1:PoO+mGL6a6LcJiPakMDHN4E218/ei/7v2sxeDtNkSRg="];
+  };
 
   # Bootloader
   boot.loader.systemd-boot.enable = true;
@@ -98,6 +103,47 @@
         "127.0.0.0/8"
         "::1"
       ];
+    };
+  };
+
+  # Netdata (local system monitoring; bound to localhost, exposed via Cloudflare)
+  services.netdata = {
+    enable = true;
+    config.web."bind to" = "127.0.0.1";
+  };
+
+  # Gonic (Subsonic-compatible music server). Library lives in /srv/music,
+  # owned by molly so tracks can be uploaded over SSH/scp. Bound to
+  # localhost; add a tunnel hostname in the Cloudflare dashboard for
+  # remote streaming.
+  services.gonic = {
+    enable = true;
+    settings = {
+      listen-addr = "127.0.0.1:4747";
+      music-path = ["/srv/music"];
+      podcast-path = "/var/lib/gonic/podcasts";
+      playlists-path = "/var/lib/gonic/playlists";
+    };
+  };
+
+  systemd.tmpfiles.rules = [
+    "d /srv/music 0755 molly users - -"
+    "d /var/lib/gonic/podcasts 0755 root root - -"
+    "d /var/lib/gonic/playlists 0755 root root - -"
+  ];
+
+  # Tranquil PDS (Rust). Replaces the reference Bluesky PDS container.
+  services.tranquil-pds = {
+    enable = true;
+    database.createLocally = true;
+    environmentFiles = [config.sops.secrets."halo/tranquil-env".path];
+    settings = {
+      server = {
+        hostname = "pds.daze.lol";
+        host = "127.0.0.1";
+        user_handle_domains = ["daze.lol"];
+      };
+      frontend.enabled = true;
     };
   };
 
@@ -195,6 +241,11 @@
     group = "searx";
     mode = "0400";
     restartUnits = ["searx.service"];
+  };
+  sops.secrets."halo/tranquil-env" = {
+    sopsFile = ../../secrets/halo.yaml;
+    mode = "0400";
+    restartUnits = ["tranquil-pds.service"];
   };
   system.stateVersion = "26.05";
 }

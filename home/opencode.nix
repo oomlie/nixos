@@ -20,14 +20,28 @@
     name = "opencode";
     runtimeInputs = [pkgs.libsecret];
     text = ''
-      ROUTE_API_KEY="$(secret-tool lookup service cliproxy host route.daze.lol user molly)"
+      ROUTE_API_KEY="$(secret-tool lookup service cliproxy host route.daze.lol user molly || true)"
       if [[ -z "$ROUTE_API_KEY" ]]; then
         echo "opencode: route.daze.lol API key not found in the keyring" >&2
         exit 1
       fi
       export ROUTE_API_KEY
 
-      FLUX_MCP_TOKEN="$(secret-tool lookup service flux-mcp host kanban-mcp.daze.lol user molly)"
+      OPENCODE_API_KEY="$(secret-tool lookup service opencode host opencode.ai user molly || true)"
+      if [[ -n "$OPENCODE_API_KEY" ]]; then
+        export OPENCODE_API_KEY
+      else
+        echo "opencode: OpenCode Go/Zen API key not found in the keyring; opencode-go/* models unavailable" >&2
+      fi
+
+      OPENROUTER_API_KEY="$(secret-tool lookup service openrouter host openrouter.ai user molly || true)"
+      if [[ -n "$OPENROUTER_API_KEY" ]]; then
+        export OPENROUTER_API_KEY
+      else
+        echo "opencode: OpenRouter API key not found in the keyring; openrouter/* models unavailable" >&2
+      fi
+
+      FLUX_MCP_TOKEN="$(secret-tool lookup service flux-mcp host kanban-mcp.daze.lol user molly || true)"
       if [[ -z "$FLUX_MCP_TOKEN" ]]; then
         echo "opencode: Flux MCP token not found in the keyring" >&2
         exit 1
@@ -45,7 +59,7 @@ in {
     settings = {
       model = models.primary;
       small_model = models.small;
-      enabled_providers = ["route"];
+      enabled_providers = ["route" "openrouter" "opencode-go"];
       references.agent-wiki = {
         path = "./wiki";
         description = "Private, curated cross-session knowledge for durable decisions, preferences, project context, and runbooks. Search it before asking for information that may have been established previously.";
@@ -681,6 +695,27 @@ in {
               name = id;
               reasoning = true;
             });
+        };
+        openrouter = {
+          name = "OpenRouter";
+          options = {
+            apiKey = "sk-or-v1-REDACTED-ROTATED-20261014";
+          };
+          models = {
+            "deepseek/deepseek-v4-flash" = {
+              name = "DeepSeek V4 Flash";
+              attachment = false;
+              reasoning = true;
+              modalities = {
+                input = ["text"];
+                output = ["text"];
+              };
+              limit = {
+                context = 1048576;
+                output = 393216;
+              };
+            };
+          };
         };
       };
     };

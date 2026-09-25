@@ -25,6 +25,7 @@
       shellAliases = {
         halo = "ssh halo";
         chi = "ssh chi";
+        dsh = "ssh dsh";
       };
     };
 
@@ -52,6 +53,13 @@
         chi = {
           HostName = "192.168.0.216";
           User = "mollyw";
+        };
+        dsh = {
+          HostName = "192.168.0.169";
+          User = "molly";
+          RequestTTY = "force";
+          RemoteCommand = "/home/molly/dsh-tui/ssh-entry.sh";
+          ControlPath = "~/.ssh/cm-dsh-%r@%h:%p";
         };
         "knot-ssh.daze.lol" = {
           User = "git";

@@ -64,6 +64,12 @@
   programs.nix-index.enable = true;
   services.gvfs.enable = true;
 
+  # Rootless Docker for mollyw; expose its user socket to normal CLI use.
+  virtualisation.docker.rootless = {
+    enable = true;
+    setSocketVariable = true;
+  };
+
   # doas alongside sudo for users in the wheel group
   security.doas = {
     enable = true;
@@ -114,6 +120,12 @@
     remotePlay.openFirewall = true;
   };
   programs.gamemode.enable = true;
+
+  # Sunshine game streaming host (Moonlight); niri uses the Wayland capture backend.
+  services.sunshine = {
+    enable = true;
+    openFirewall = true;
+  };
 
   # System state version
   system.stateVersion = "26.05";

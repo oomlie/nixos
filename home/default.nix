@@ -1,10 +1,13 @@
 {pkgs, ...}: {
   imports = [
+    ./albedo.nix
     ./apps.nix
     ./foot.nix
     ./niri.nix
     ./noctalia.nix
     ./opencode.nix
+    ./pi.nix
+    ./prime-agent.nix
     ./qutebrowser.nix
     ./shell.nix
     ./satty.nix
@@ -35,6 +38,9 @@
     homeDirectory = "/home/mollyw";
 
     packages = with pkgs; [
+      libsecret
+      github-cli
+
       # Niri ecosystem
       xwayland-satellite
       equibop
