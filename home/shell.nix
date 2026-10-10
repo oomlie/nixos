@@ -50,22 +50,18 @@
         halo = {
           HostName = "100.64.0.1";
           User = "molly";
-          # chi and halo sit on different LANs (192.168.1.0/24 vs
-          # 192.168.0.0/24); reach halo over the tailnet via misty.
-          ProxyJump = "molly@192.168.1.174";
         };
         chi = {
           HostName = "192.168.0.216";
           User = "mollyw";
         };
         misty = {
-          HostName = "192.168.1.174";
+          HostName = "100.64.0.4";
           User = "molly";
         };
         dsh = {
           HostName = "100.64.0.1";
           User = "molly";
-          ProxyJump = "molly@192.168.1.174";
           RequestTTY = "force";
           RemoteCommand = "/home/molly/dsh-tui/ssh-entry.sh";
           ControlPath = "~/.ssh/cm-dsh-%r@%h:%p";
