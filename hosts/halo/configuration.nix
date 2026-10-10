@@ -202,7 +202,8 @@
       RestrictSUIDSGID = true;
       RestrictRealtime = true;
       LockPersonality = true;
-      RestrictAddressFamilies = ["AF_UNIX" "AF_INET" "AF_INET6"];
+      # AF_NETLINK is required for getifaddrs() interface enumeration.
+      RestrictAddressFamilies = ["AF_UNIX" "AF_INET" "AF_INET6" "AF_NETLINK"];
       CapabilityBoundingSet = "";
       SystemCallArchitectures = "native";
     };
