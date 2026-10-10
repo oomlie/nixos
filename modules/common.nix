@@ -5,6 +5,12 @@ _: {
   # 256 MiB download buffer: fewer stalls on large fetches (games, toolchains)
   nix.settings.download-buffer-size = 268435456;
 
+  # misty serves its store as a signed binary cache over the tailnet, so
+  # anything built there is reused instead of rebuilt. See halo-nixos
+  # hosts/misty/nix-cache.nix.
+  nix.settings.extra-substituters = ["http://100.64.0.4:5000"];
+  nix.settings.extra-trusted-public-keys = ["misty-cache-1:skiBr7GfZnuoVq6uMBDjR1HtqSfBAb/6rFNFm3K3mxQ="];
+
   # Locale
   time.timeZone = "America/New_York";
   i18n.defaultLocale = "en_US.UTF-8";
