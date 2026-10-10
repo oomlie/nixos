@@ -15,6 +15,25 @@
   nix.settings.extra-substituters = ["https://noctalia.cachix.org"];
   nix.settings.extra-trusted-public-keys = ["noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="];
 
+  # Use misty for x86_64-linux builds.
+  # Builds ssh in as root because misty has no dedicated builder account; the
+  # host key below is pinned. Add a builder user there before loosening this.
+  nix = {
+    distributedBuilds = true;
+    buildMachines = [
+      {
+        hostName = "192.168.1.174";
+        sshUser = "root";
+        sshKey = "/home/mollyw/.ssh/mol";
+        system = "x86_64-linux";
+        maxJobs = 12;
+        supportedFeatures = ["benchmark" "big-parallel" "kvm" "nixos-test"];
+        publicHostKey = "c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSU1uK3c4bW9ObEVJeFJCMXZQTmU1QTFmK2VpUENjMjAySWpSUktOT3l6V1kgcm9vdEBtaXN0eQo=";
+      }
+    ];
+    settings.builders-use-substitutes = true;
+  };
+
   # Bootloader
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10;
@@ -22,6 +41,11 @@
 
   # Hostname
   networking.hostName = "chi";
+
+  # Join the private Headscale tailnet (control plane on vista,
+  # https://head.daze.lol). Enrolment uses a short-lived pre-auth key via
+  # `tailscale up`; see TAILNET.md. DNS is not overridden.
+  services.tailscale.enable = true;
 
   # User account
   users.users.mollyw = {
@@ -32,6 +56,9 @@
     extraGroups = ["input" "networkmanager" "wheel" "dialout"];
   };
 
+  # Passwordless sudo is deliberate: this user administers the host and drives
+  # non-interactive remote deploys (`nixos-rebuild --use-remote-sudo`). It does
+  # make the account root-equivalent, so treat its SSH key accordingly.
   security.sudo.extraRules = [
     {
       users = ["mollyw"];

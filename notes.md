@@ -211,3 +211,25 @@ ComicShannsMono Nerd Font is set as the system-wide default via Stylix and `modu
 ## Removed: trenchbroom
 
 The custom `pkgs/trenchbroom` AppImage wrapper was removed from `home/default.nix` because it was untracked and broke flake evaluation. nixpkgs no longer provides `trenchbroom` ("removed due to numerous vulnerabilities in freeimage"), so a replacement needs research before Quake-family level editing is available again.
+
+
+## Host: misty (Media Server & Storage Vault)
+
+`misty` (`192.168.1.174`) is a dedicated NixOS 26.11 media server, high-capacity storage node, YouTube proxy (`yt.daze.lol`), and LAN TV kiosk host (`https://video.daze.lol`).
+
+- **Hardware**: Xeon E5-1650 v4 (6C/12T), 64 GB DDR4 RAM, Quadro K620 (Maxwell GPU with `nvidiaPackages.legacy_580` for Jellyfin NVENC hardware transcoding).
+- **Storage Topology (`disko`)**:
+  - `sda` (512 GB SSD): system root `/` & `/boot`.
+  - `sdc` (12 TB HDD): `/srv/movies` (Movies & Music libraries + torrent/usenet staging). `/srv/movies/media/music` is bind-mounted to `/srv/music`.
+  - `sdb` (12 TB HDD): `/srv/tv` (TV library + torrent/usenet staging).
+  - *Hardlink/Instant-Move Architecture*: Isolating TV vs Movies+Music onto independent disks alongside their respective download staging directories allows qBittorrent, Usenet downloadders, and Servarr daemons (`sonarr`, `radarr`, `lidarr`, `bazarr`, `prowlarr`) to execute instant hardlinks/atomic moves without cross-disk copying.
+- **Media Stack**: Shared `media` group (`gid 2775`, `umask 0002`). Jellyfin (8096), Navidrome (4533), Seerr (5055), qBittorrent (8080), Sonarr (8989), Radarr (7878), Lidarr (8686), Bazarr (6767), Prowlarr (9696), FileBrowser (8088).
+- **Web & Auth**: Invidious (`invidious-oidc`, port 3000) backed by PostgreSQL (5432) and Invidious Companion (Podman container, port 8282). Integrated with `ratlogin` OIDC (`auth.daze.lol`). Secrets managed via `sops-nix` (`secrets/misty.yaml`).
+- **Kiosk Display**: Wayland Cage compositor (`cage-tty1.service` under user `tv`) rendering Chromium kiosk mode on DP-1 to `https://video.daze.lol`.
+
+Full details, operational runbook, and diagnostic commands are documented in [`misty.md`](./misty.md).
+
+
+## Headscale tailnet
+
+Headscale now runs on Raff Ubuntu VM `vista` at `https://head.daze.lol`; the DNS record is DNS-only. Halo is enrolled at `100.64.0.1` and Vista at `100.64.0.2`. Misty remains to be enrolled. See `../halo-nixos/TAILNET.md` for the current topology, SSH access, pre-auth key workflow, and recovery notes.

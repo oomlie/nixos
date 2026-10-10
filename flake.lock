@@ -16,24 +16,6 @@
         "url": "https://tangled.org/@jakelazaroff.com/actor-typeahead"
       }
     },
-    "albedo": {
-      "inputs": {
-        "nixpkgs": "nixpkgs"
-      },
-      "locked": {
-        "lastModified": 1790268036,
-        "narHash": "sha256-62/DTcr9Ww6HRMOAeNHUOrJhyijBsjFwmWTuoGsY5PM=",
-        "ref": "refs/heads/main",
-        "rev": "206aff26094182837edbcaf68130506d429f20c7",
-        "revCount": 75,
-        "type": "git",
-        "url": "https://tangled.org/okami.mom/albedo"
-      },
-      "original": {
-        "type": "git",
-        "url": "https://tangled.org/okami.mom/albedo"
-      }
-    },
     "base16": {
       "inputs": {
         "fromYaml": "fromYaml"
@@ -633,16 +615,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1790055231,
-        "narHash": "sha256-QpXotokGh5eeMG1Njiuh27oP0rK6t5+cMp7ymXSs7mc=",
-        "owner": "NixOS",
+        "lastModified": 1783776592,
+        "narHash": "sha256-UgCQzxeWI75XM8G+hPrPh+MKzEPjG3SpAj7dtqSbksA=",
+        "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "b6c98e9e6633ee64753b594ff4a5febf0367fc00",
+        "rev": "e7a3ca8092b61ff85b6a45bf863ea2b2d6a661b3",
         "type": "github"
       },
       "original": {
-        "owner": "NixOS",
-        "ref": "nixpkgs-unstable",
+        "owner": "nixos",
+        "ref": "nixos-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -679,22 +661,6 @@
       }
     },
     "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1783776592,
-        "narHash": "sha256-UgCQzxeWI75XM8G+hPrPh+MKzEPjG3SpAj7dtqSbksA=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "e7a3ca8092b61ff85b6a45bf863ea2b2d6a661b3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_3": {
       "locked": {
         "lastModified": 1784176690,
         "narHash": "sha256-UCyrwrMqHxfvgEJBdqVUYg18mjf+HZtT+A5AxWNEmu8=",
@@ -775,14 +741,13 @@
     },
     "root": {
       "inputs": {
-        "albedo": "albedo",
         "firefox-addons": "firefox-addons",
         "home-manager": "home-manager",
         "hunk": "hunk",
         "niri": "niri",
         "nix-index-database": "nix-index-database",
         "nixos-hardware": "nixos-hardware",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": "nixpkgs",
         "noctalia": "noctalia",
         "noctalia-greeter": "noctalia-greeter",
         "sops-nix": "sops-nix",
@@ -1052,7 +1017,7 @@
     },
     "tranquil": {
       "inputs": {
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_2"
       },
       "locked": {
         "lastModified": 1789227286,

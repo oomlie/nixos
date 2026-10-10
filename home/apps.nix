@@ -34,6 +34,27 @@
       XDG_CONFIG_HOME="$config_dir" ${pkgs.tea}/bin/tea "$@"
     '';
   };
+  signalDesktop = pkgs.symlinkJoin {
+    name = "signal-desktop";
+    paths = [pkgs.signal-desktop];
+    nativeBuildInputs = [pkgs.makeWrapper];
+    postBuild = ''
+      wrapProgram "$out/bin/signal-desktop" --add-flags "--password-store=kwallet6"
+    '';
+  };
+  # Zed reads the OpenAI-compatible edit-prediction key from this env var.
+  # Zeta 2.1 runs on halo, proxied at route.daze.lol/zeta; the key is the
+  # halo gateway key kept in the login keyring.
+  zedEditor = pkgs.symlinkJoin {
+    name = "zed-editor";
+    paths = [pkgs.zed-editor];
+    nativeBuildInputs = [pkgs.makeWrapper];
+    postBuild = ''
+      wrapProgram "$out/bin/zeditor" \
+        --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.libsecret]} \
+        --run 'ZED_OPEN_AI_COMPATIBLE_EDIT_PREDICTION_API_KEY="$(secret-tool lookup service halo host halo.daze.lol user molly)"; export ZED_OPEN_AI_COMPATIBLE_EDIT_PREDICTION_API_KEY'
+    '';
+  };
 in {
   programs = {
     helix = {
@@ -387,6 +408,22 @@ in {
         };
       };
     };
+
+    zed-editor = {
+      enable = true;
+      package = zedEditor;
+      userSettings = {
+        edit_predictions = {
+          provider = "open_ai_compatible_api";
+          open_ai_compatible_api = {
+            api_url = "https://route.daze.lol/zeta/v1/completions";
+            model = "zeta2.1";
+            prompt_format = "zeta2_1";
+            max_output_tokens = 512;
+          };
+        };
+      };
+    };
   };
 
   home.packages = [
@@ -395,7 +432,8 @@ in {
     pkgs.proton-pass
     pkgs.proton-vpn
     pkgs.prismlauncher
-    pkgs.signal-desktop
+    pkgs.kdePackages.kwallet
+    signalDesktop
     pkgs.unzip
     pkgs.rns
     pkgs.lxmf

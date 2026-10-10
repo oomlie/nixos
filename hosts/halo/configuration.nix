@@ -14,6 +14,9 @@
   # Allow the admin user to copy locally-built (unsigned) closures during
   # `nixos-rebuild --target-host` deployments from chi.
   nix.settings = {
+    # molly is trusted so remote `nixos-rebuild --target-host` can copy
+    # locally-built closures. Trusted users can also write to the store, so
+    # molly is effectively root here — see the sudo note below.
     trusted-users = ["root" "molly"];
     # Prebuilt tranquil-pds artifacts from upstream CI.
     substituters = ["https://tranquil.cachix.org"];
@@ -26,6 +29,9 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   # Strix Halo: allocate up to 124 GiB unified memory for the iGPU.
+  # amd_iommu=off gives the iGPU the full GTT without IOMMU overhead, at the
+  # cost of DMA/IOMMU isolation. Required for this hardware; revisit if the
+  # kernel gains working IOMMU+large-GTT support.
   boot.kernelParams = [
     "amd_iommu=off"
     "amdgpu.gttsize=126976"
@@ -151,6 +157,7 @@
   users.users.molly = {
     isNormalUser = true;
     description = "molly";
+    # docker is root-equivalent; dialout/video/render are for hardware access.
     extraGroups = ["networkmanager" "wheel" "video" "render" "docker" "dialout"];
   };
 
@@ -182,6 +189,22 @@
       ExecStart = "${pkgs.rns}/bin/rnsd --config /home/molly/.reticulum";
       Restart = "on-failure";
       RestartSec = "10s";
+
+      # rnsd is an unprivileged userspace daemon; it never needs to write
+      # outside its config/storage directory or gain new privileges.
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "full";
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictNamespaces = true;
+      RestrictSUIDSGID = true;
+      RestrictRealtime = true;
+      LockPersonality = true;
+      RestrictAddressFamilies = ["AF_UNIX" "AF_INET" "AF_INET6"];
+      CapabilityBoundingSet = "";
+      SystemCallArchitectures = "native";
     };
   };
 
@@ -202,7 +225,8 @@
   zramSwap.enable = true;
   zramSwap.memoryPercent = 25;
 
-  # Sudo
+  # Sudo. Passwordless is deliberate: molly administers the host and drives
+  # non-interactive deploys from chi over SSH. See the trusted-users note above.
   security.sudo.extraRules = [
     {
       users = ["molly"];
