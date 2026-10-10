@@ -15,14 +15,14 @@
   nix.settings.extra-substituters = ["https://noctalia.cachix.org"];
   nix.settings.extra-trusted-public-keys = ["noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="];
 
-  # Use misty for x86_64-linux builds.
-  # Builds ssh in as root because misty has no dedicated builder account; the
-  # host key below is pinned. Add a builder user there before loosening this.
+  # Use misty for x86_64-linux builds. chi and misty are on different LANs, so
+  # the builder is reached over the tailnet; root logs in by key (misty has no
+  # dedicated builder account) and is a trusted user there.
   nix = {
     distributedBuilds = true;
     buildMachines = [
       {
-        hostName = "192.168.1.174";
+        hostName = "100.64.0.4";
         sshUser = "root";
         sshKey = "/home/mollyw/.ssh/mol";
         system = "x86_64-linux";
