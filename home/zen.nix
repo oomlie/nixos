@@ -1,3 +1,6 @@
-_: {
-  programs.zen-browser.enable = true;
+{browserProfile, ...}: {
+  programs.zen-browser = {
+    enable = true;
+    profiles.mollyw = browserProfile;
+  };
 }

@@ -36,10 +36,17 @@
   };
 
   # Rotate the internal display from the Framework's accelerometer data.
-  services.iio-niri = {
-    enable = true;
-    extraArgs = ["--monitor" "eDP-1"];
-  };
+  # iio-niri defaults to the first monitor Niri sees (the internal panel here);
+  # pin a specific output with extraArgs = ["--monitor" "eDP-1"] if a docked
+  # display is enumerated first.
+  services.iio-niri.enable = true;
+
+  # Stable name for the internal touchscreen, used by the tablet gesture
+  # service, so it does not depend on the kernel's event number or the
+  # i2c_designware path.
+  services.udev.extraRules = ''
+    SUBSYSTEM=="input", KERNEL=="event*", ENV{ID_INPUT_TOUCHSCREEN}=="1", SYMLINK+="input/tablet-touchscreen"
+  '';
 
   # XWayland support for X11 apps under niri
   programs.xwayland.enable = true;

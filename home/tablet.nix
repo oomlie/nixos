@@ -4,7 +4,7 @@
   ...
 }: let
   niri = "${config.programs.niri.package}/bin/niri";
-  touchscreen = "/dev/input/by-path/pci-0000:00:15.0-platform-i2c_designware.0-event";
+  touchscreen = "/dev/input/tablet-touchscreen";
   tabletGestures = pkgs.writeShellScript "tablet-gestures" ''
     set -eu
 

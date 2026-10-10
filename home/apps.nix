@@ -1,12 +1,11 @@
 {
-  inputs,
   lib,
   pkgs,
   config,
   giteaCredentialHelper,
+  browserProfile,
   ...
 }: let
-  inherit (pkgs.stdenv.hostPlatform) system;
   tea = pkgs.writeShellApplication {
     name = "tea";
     runtimeInputs = [pkgs.libsecret];
@@ -267,124 +266,7 @@ in {
 
     firefox = {
       enable = true;
-      profiles.mollyw = {
-        id = 0;
-        isDefault = true;
-
-        search = {
-          force = true;
-          default = "ddg";
-        };
-
-        bookmarks = {
-          force = true;
-          settings = [
-            {
-              name = "SearXNG";
-              url = "https://search.daze.lol/";
-              keyword = "s";
-            }
-            {
-              name = "NixOS Search";
-              url = "https://search.nixos.org/packages";
-              keyword = "np";
-            }
-            {
-              name = "NixOS Wiki";
-              url = "https://wiki.nixos.org/";
-              keyword = "nw";
-            }
-            "separator"
-            {
-              name = "Tangled";
-              url = "https://tangled.org/molly.computer";
-            }
-            {
-              name = "Gitea";
-              url = "https://git.purplish.blue/molly";
-            }
-          ];
-        };
-
-        containersForce = true;
-        containers = {
-          personal = {
-            name = "Personal";
-            color = "blue";
-            icon = "fingerprint";
-            id = 1;
-          };
-          work = {
-            name = "Work";
-            color = "orange";
-            icon = "briefcase";
-            id = 2;
-          };
-          shopping = {
-            name = "Shopping";
-            color = "green";
-            icon = "cart";
-            id = 3;
-          };
-        };
-
-        settings = {
-          # Use regular Firefox default fonts instead of the system-wide
-          # ComicShannsMono nerd font
-          "font.name.sans-serif.x-western" = lib.mkForce "Noto Sans";
-          "font.name.serif.x-western" = lib.mkForce "Noto Serif";
-          "font.name.monospace.x-western" = lib.mkForce "Noto Sans Mono";
-
-          # Privacy: telemetry & studies
-          "toolkit.telemetry.enabled" = false;
-          "toolkit.telemetry.unified" = false;
-          "toolkit.telemetry.archive.enabled" = false;
-          "datareporting.healthreport.uploadEnabled" = false;
-          "datareporting.policy.dataSubmissionEnabled" = false;
-          "app.shield.optoutstudies.enabled" = false;
-          "browser.newtabpage.activity-stream.feeds.telemetry" = false;
-          "browser.newtabpage.activity-stream.telemetry" = false;
-          "browser.discovery.enabled" = false;
-
-          # Privacy: tracking protection
-          "browser.contentblocking.category" = "strict";
-          "privacy.globalprivacycontrol.enabled" = true;
-          "privacy.donottrackheader.enabled" = true;
-          "privacy.query_stripping.enabled" = true;
-          "privacy.query_stripping.enabled.pbmode" = true;
-          "privacy.fingerprintingProtection" = true;
-
-          # Privacy: network leakage
-          "dom.security.https_only_mode" = true;
-          "network.dns.disablePrefetch" = true;
-          "network.prefetch-next" = false;
-          "network.predictor.enabled" = false;
-          "network.http.speculative-parallel-limit" = 0;
-          "browser.send_pings" = false;
-          "beacon.enabled" = false;
-          "dom.battery.enabled" = false;
-          "geo.enabled" = false;
-
-          # Privacy: credentials & autofill (Proton Pass handles this)
-          "signon.rememberSignons" = false;
-          "signon.autofillForms" = false;
-          "browser.formfill.enable" = false;
-          "extensions.formautofill.addresses.enabled" = false;
-          "extensions.formautofill.creditCards.enabled" = false;
-
-          # UI
-          "browser.newtabpage.activity-stream.showSponsored" = false;
-          "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
-          "extensions.pocket.enabled" = false;
-          "browser.toolbars.bookmarks.visibility" = "always";
-          "browser.startup.homepage" = "about:blank";
-        };
-        extensions.packages = with inputs.firefox-addons.packages.${system}; [
-          ublock-origin
-          proton-pass
-          vimium
-        ];
-      };
+      profiles.mollyw = browserProfile;
     };
 
     btop = {
