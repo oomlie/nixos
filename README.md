@@ -1,6 +1,6 @@
 # molly's nixos config
 
-NixOS configurations for two x86_64-linux machines, managed from a single flake.
+NixOS configuration for `chi`, a Framework 12 x86_64-linux laptop.
 
 The canonical repository lives on Tangled:
 <https://tangled.org/molly.computer/nixos>.
@@ -10,15 +10,15 @@ The canonical repository lives on Tangled:
 | host | role | notes |
 | --- | --- | --- |
 | **chi** | Framework 12 laptop | Desktop; Niri compositor, Noctalia shell, Stylix theming from the wallpaper |
-| **halo** | Strix Halo server | Headless; Tangled knot/spindle, Podman containers, sops-managed secrets |
+
+The `halo` (Strix Halo) server is managed separately in `~/halo-nixos`.
 
 ## layout
 
 ```
-flake.nix            — flake inputs and both nixosConfigurations
-modules/common.nix   — settings shared by chi and halo (locale, firewall, nix)
+flake.nix            — flake inputs and the chi nixosConfiguration
+modules/common.nix   — chi settings (locale, firewall, nix)
 hosts/chi/           — Framework 12 config, desktop modules, generated hardware config
-hosts/halo/          — server config and its separate Home Manager config
 home/                — Home Manager modules for chi (shell, apps, niri, opencode, …)
 pkgs/                — locally packaged software (jagex-launcher)
 secrets/             — SOPS-encrypted credentials only; never store plaintext here
@@ -34,18 +34,10 @@ hardware itself changes.
 ## deploying
 
 ```bash
-# chi (local)
 sudo nixos-rebuild switch --flake .#chi
-
-# halo (from chi; the SSH host alias comes from Home Manager)
-sudo nixos-rebuild switch --flake .#halo \
-  --target-host halo \
-  --use-remote-sudo
 ```
 
-Preview a change with `dry-activate` or `build` instead of `switch`. Halo must
-be deployed at least once after a secret changes so `/run/secrets/halo/*` is
-rematerialized before consumers restart.
+Preview a change with `dry-activate` or `build` instead of `switch`.
 
 ## checks
 
@@ -53,11 +45,10 @@ rematerialized before consumers restart.
 nix fmt
 nix flake check
 nix eval --raw .#nixosConfigurations.chi.config.system.build.toplevel.drvPath
-nix eval --raw .#nixosConfigurations.halo.config.system.build.toplevel.drvPath
 ```
 
 The formatter is treefmt with Alejandra, Statix, and deadnix. `nix flake check`
-only runs the formatting check, so evaluate both hosts separately after touching
+only runs the formatting check, so evaluate chi separately after touching
 `flake.nix`, `flake.lock`, `modules/common.nix`, or shared inputs.
 
 ## jagex-launcher
@@ -76,15 +67,13 @@ available.
 
 ## secrets
 
-Secrets use `sops-nix` with age:
+Secrets use `sops-nix` with age (chi key: `~/.config/sops/age/keys.txt`). Only
+the age recipients in `.sops.yaml` and encrypted files under `secrets/` belong
+in Git; keep the private key backed up outside the repository. Halo's secrets
+now live in `~/halo-nixos`. See [`docs/secrets.md`](docs/secrets.md).
 
-- chi key: `~/.config/sops/age/keys.txt`
-- halo key: `/var/lib/sops-nix/keys.txt`
-
-Only the age recipients in `.sops.yaml` and encrypted files under `secrets/`
-belong in Git; keep both private keys backed up outside the repository. Edit
-credentials with `sops secrets/halo.yaml`. See [`docs/secrets.md`](docs/secrets.md)
-for the full workflow.
+With halo removed from this repository, the files under `secrets/` and
+`docs/secrets.md` are legacy and can be retired separately.
 
 ## opencode
 
@@ -97,13 +86,6 @@ endpoint at startup and adds any newly published models automatically.
 API keys are never written to the store; the `opencode` wrapper reads them from
 the login keyring at launch with `secret-tool`. See [`notes.md`](notes.md) for
 more on the agent tooling.
-
-## containers
-
-Halo's Podman/Compose application definitions currently live outside this
-repository under `/home/molly/`. PDS already consumes its sops-managed
-environment; the remaining services are planned to move here as declarative
-modules later.
 
 ## updating inputs
 

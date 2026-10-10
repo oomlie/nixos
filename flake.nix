@@ -1,5 +1,5 @@
 {
-  description = "NixOS configurations for chi and halo";
+  description = "NixOS configuration for chi";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -51,22 +51,6 @@
         nixpkgs.follows = "nixpkgs";
         home-manager.follows = "home-manager";
       };
-    };
-
-    # Tangled: git server (knot) and CI runner (spindle) for halo
-    tangled = {
-      url = "git+https://tangled.org/tangled.sh/core";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # Tranquil PDS (halo). Keep its own nixpkgs pin so we get cache hits
-    # from tranquil.cachix.org instead of rebuilding from source.
-    tranquil = {
-      url = "git+https://tangled.org/tranquil.farm/tranquil-pds";
-    };
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -122,22 +106,6 @@
               inputs.zen-browser.homeModules.twilight
             ];
             home-manager.users.mollyw = import ./home;
-          }
-        ];
-      };
-
-      # Strix Halo server
-      halo = nixpkgs.lib.nixosSystem {
-        specialArgs = {inherit inputs;};
-        modules = [
-          ./modules/common.nix
-          ./hosts/halo/configuration.nix
-          home-manager.nixosModules.home-manager
-          inputs.sops-nix.nixosModules.sops
-          inputs.tranquil.nixosModules.default
-          {
-            home-manager.backupCommand = homeManagerBackup;
-            home-manager.extraSpecialArgs = {inherit inputs;};
           }
         ];
       };
