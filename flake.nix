@@ -43,6 +43,15 @@
       url = "github:modem-dev/hunk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    zen-browser = {
+      # Twilight artifacts are re-uploaded by the flake's CI, so the package
+      # stays reproducible; see the upstream README.
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+      };
+    };
 
     # Tangled: git server (knot) and CI runner (spindle) for halo
     tangled = {
@@ -73,7 +82,6 @@
   }: let
     system = "x86_64-linux";
     pkgs = import nixpkgs {inherit system;};
-    primeAgent = pkgs.callPackage ./pkgs/prime-agent/package.nix {};
     treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
     homeManagerBackup = pkgs.writeShellScript "home-manager-backup" ''
       target="$1"
@@ -111,6 +119,7 @@
               niri.homeModules.stylix
               inputs.noctalia.homeModules.default
               inputs.hunk.homeManagerModules.default
+              inputs.zen-browser.homeModules.twilight
             ];
             home-manager.users.mollyw = import ./home;
           }
@@ -135,8 +144,6 @@
     };
 
     formatter.${system} = treefmtEval.config.build.wrapper;
-    packages.${system}.prime-agent = primeAgent;
-    devShells.${system}.default = pkgs.mkShellNoCC {packages = [primeAgent];};
     checks.${system}.formatting = treefmtEval.config.build.check self;
   };
 }

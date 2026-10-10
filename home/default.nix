@@ -5,12 +5,12 @@
     ./niri.nix
     ./noctalia.nix
     ./opencode.nix
-    ./prime-agent.nix
     ./qutebrowser.nix
     ./shell.nix
     ./satty.nix
     ./stylix.nix
     ./tablet.nix
+    ./zen.nix
   ];
 
   _module.args = {
