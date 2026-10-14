@@ -38,6 +38,58 @@ secrets/             — SOPS-encrypted credentials only; never store plaintext
 and is intentionally excluded from the formatter. Keep it byte-identical unless
 the hardware itself changes.
 
+## services
+
+halo is the only public edge; everything below is fronted by its Caddy
+(`modules/caddy.nix`). "ratlogin (proxy)" means an `oauth2-proxy` guard sits in
+front of an app with no SSO of its own; "ratlogin (OIDC)" means the app
+authenticates against ratlogin itself. Services marked *misty* are reached from
+halo over Mycelium.
+
+| Endpoint | Service | Auth |
+| --- | --- | --- |
+| `daze.lol`, `tilde.daze.lol` | pubnix landing page | public |
+| `tilde.daze.lol/~user` | per-user websites (`/home/<user>/public_html`) | public |
+| `tilde.daze.lol/users` | generated member directory | public |
+| `*.daze.lol` | per-user vanity domains + ATProto handle records | public |
+| `planet.daze.lol` | aggregated member blogs (+ `atom.xml`) | public |
+| `search.daze.lol` | SearXNG | public |
+| `paste.daze.lol` | Microbin pastebin and file host | public |
+| `rsshub.daze.lol` | RSSHub feed generator | public |
+| `scryphil.daze.lol` | static site | public |
+| `auth.daze.lol` | ratlogin, the OIDC provider | ATProto OAuth |
+| `pds.daze.lol` | Tranquil PDS | ATProto |
+| `hold.daze.lol` | ATCR container registry | ATProto |
+| `cdn.daze.lol` | Garage S3 (Hold blob downloads) | internal |
+| `knot.daze.lol` | Tangled knot (git) | Tangled DID |
+| `spindle.daze.lol` | Tangled spindle (CI) | Tangled DID |
+| `code.daze.lol` | Forgejo | ratlogin (OIDC) |
+| `tasks.daze.lol` | Vikunja | ratlogin (OIDC) |
+| `game.daze.lol` | RomM ROM library and web emulator | ratlogin (OIDC) |
+| `yt.daze.lol` | Invidious *(misty)* | ratlogin (OIDC) |
+| `video.daze.lol` | Jellyfin *(misty)* | ratlogin (OIDC, in-app plugin) |
+| `requests.daze.lol` | account request portal | ratlogin (proxy) |
+| `dash.daze.lol` | homepage dashboard | ratlogin (proxy) |
+| `music.daze.lol` | Navidrome *(misty)* | ratlogin (proxy) |
+| `files.daze.lol` | FileBrowser *(misty)* | ratlogin (proxy) |
+| `niri.daze.lol` | niri agent harness UI | ratlogin (proxy) |
+| `pds-admin.daze.lol` | PDS Operator | ratlogin (proxy) |
+| `route.daze.lol/ui` | CLIProxyAPI management UI | ratlogin (proxy) |
+| `route.daze.lol` | CLIProxyAPI LLM gateway (`/zeta/*`, `/zeta-lsp/*`) | API key |
+| `chat.daze.lol` | Open WebUI (route + OpenRouter ZDR models) | WebUI account |
+| `cloud.daze.lol` | Nextcloud *(misty)* | Nextcloud account |
+| `seerr.daze.lol` | Seerr requests (login shim) | Jellyfin Quick Connect |
+
+Non-HTTP listeners on halo, opened in `modules/hardening.nix`:
+
+| Listener | Service | Auth |
+| --- | --- | --- |
+| `gemini://gemini.daze.lol/~user/` (`:1965`) | Agate capsules | public |
+| `gopher://gopher.daze.lol/1/~user/` (`:70`) | geomyidae holes | public |
+| `irc.daze.lol:6697` (+ gamja over `/socket`) | soju bouncer | soju accounts |
+| `:4567` (TCP/UDP) | i2pd router and tilde eepsite | loopback proxies |
+| `:4242`, `:2965`, `:29665` | Reticulum TCP and AutoInterface | Reticulum |
+
 ## deploying
 
 Deployments originate from chi. Clan selects Iroh first and Mycelium as the
