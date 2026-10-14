@@ -33,7 +33,7 @@ Sources used for this setup:
 - [Niri touchscreen gestures discussion](https://github.com/niri-wm/niri/discussions/463) covers `lisgd`, rotation handling, Roland, and experimental native gesture work.
 - [Framework 12 Sway tips](https://community.frame.work/t/sway-on-the-framework-laptop-12/73173) demonstrates the practical `wvkbd`, rotation, and touch-sized bar-control pattern.
 - [Framework 12 tablet requirements](https://community.frame.work/t/what-are-the-linux-system-requirements-for-tablet-mode/71466) and the [tablet-mode recovery tracking thread](https://community.frame.work/t/fw12-problems-returning-from-tablet-mode-tracking-thread/71631) cover kernel module ordering and hardware failure modes.
-- [The Tangled repository](https://tangled.org/molly.computer/nixos/tree/master) is the primary remote for this configuration. Tangled's public search currently exposes few comparable Framework 12 configurations.
+- [The Tangled mirror](https://tangled.org/molly.computer/nixos/tree/master) carries this configuration alongside GitHub, which is canonical. Tangled's public search currently exposes few comparable Framework 12 configurations.
 
 ### software to investigate
 

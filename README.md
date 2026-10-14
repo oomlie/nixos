@@ -11,8 +11,13 @@ One flake managing three `x86_64-linux` hosts:
 Clan Core manages the controller-free Mycelium mesh. Iroh provides a separate
 NAT-traversing SSH/deployment path to halo and misty; see `NETWORK.md`.
 
-The canonical repository lives on Tangled:
-<https://tangled.org/molly.computer/nixos>.
+The canonical repository lives on GitHub:
+<https://github.com/oomlie/nixos>. It is mirrored to Tangled
+(<https://tangled.org/molly.computer/nixos>) and Gitea
+(`git.purplish.blue/molly/nixos`); pushing to the mirrors is a deliberate step.
+
+See `docs/cloudflare-os.md` for the plan to drive agent-assisted changes from a
+Cloudflare OS dashboard.
 
 ## layout
 
