@@ -310,6 +310,7 @@
       packages = with pkgs; [
         sops
         age
+        jq
         clan-core.packages.${system}.clan-cli
         # infra/cloudflare: provider baked in, so `tofu init` needs no registry access.
         (opentofu.withPlugins (p: [p.cloudflare_cloudflare]))

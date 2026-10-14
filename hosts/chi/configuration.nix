@@ -57,6 +57,9 @@
     "/home/mollyw/.local/share/keyrings"
   ];
 
+  # Export of the Cloudflare OS KV/R2 state, written daily by home/cloudflare-backup.nix.
+  clan.core.state.cloudflare.folders = ["/home/mollyw/.local/share/cloudflare-state"];
+
   sops.age.keyFile = "/var/lib/clan-sops/key.txt";
 
   programs.zsh.enable = true;

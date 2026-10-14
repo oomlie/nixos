@@ -132,6 +132,7 @@ in {
     ./apps.nix
     ./foot.nix
     ./niri.nix
+    ./cloudflare-backup.nix
     ./noctalia.nix
     ./opencode.nix
     ./qutebrowser.nix
