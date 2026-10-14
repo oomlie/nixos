@@ -1,5 +1,7 @@
 creation_rules:
-  - path_regex: secrets/.*\.ya?ml$
-    age: >-
-      age1vdvw63kguace6w92sgpw2x7pd4dh0ajdeq0rt225jeldkz4jeutqd8xe0m,
-      age1xml2rn5mtdfewnnnepfdrxtea2r53vpdxj94m74ppejuq86lt40sn7pequ
+  - path_regex: secrets/halo\.yaml(\.example)?$
+    age: age1vdvw63kguace6w92sgpw2x7pd4dh0ajdeq0rt225jeldkz4jeutqd8xe0m,age1dlcukaacxhn83eqn3tm37s7a9guqnun8qm7t9c2q6akk5pnehycq3h0svu
+  # Secrets shared between halo and misty (e.g. the ratlogin OIDC client
+  # used by the Invidious instance on misty).
+  - path_regex: secrets/misty\.yaml(\.example)?$
+    age: age1vdvw63kguace6w92sgpw2x7pd4dh0ajdeq0rt225jeldkz4jeutqd8xe0m,age1dlcukaacxhn83eqn3tm37s7a9guqnun8qm7t9c2q6akk5pnehycq3h0svu,age1d8uu6jpks6a8jvma6drnyz7qtm5gwcha4eulyskkza06rjz6eg5suchptu
