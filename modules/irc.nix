@@ -17,6 +17,10 @@ in {
     acceptTerms = true;
     certs."irc.daze.lol" = {
       dnsProvider = "cloudflare";
+      # lego verifies the TXT record against the system resolver by default, which on halo is
+      # systemd-resolved (127.0.0.53) forwarding to LAN DNS and never sees the challenge record, so
+      # every renewal timed out. Ask a public recursive resolver instead.
+      dnsResolver = "1.1.1.1:53";
       credentialFiles = {
         "CF_DNS_API_TOKEN_FILE" = config.sops.secrets."acme/cloudflare".path;
       };
