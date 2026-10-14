@@ -21,6 +21,11 @@ in {
       # systemd-resolved (127.0.0.53) forwarding to LAN DNS and never sees the challenge record, so
       # every renewal timed out. Ask a public recursive resolver instead.
       dnsResolver = "1.1.1.1:53";
+      # lego also polls the zone's authoritative nameservers directly, over IPv6 UDP, which halo's
+      # network drops (as it does outbound QUIC; see modules/tunnel.nix), so that check times out
+      # even though the record is live. The zone is served by Cloudflare itself, which publishes
+      # instantly, and the recursive check above still has to see the record.
+      extraLegoFlags = ["--dns.propagation.disable-ans"];
       credentialFiles = {
         "CF_DNS_API_TOKEN_FILE" = config.sops.secrets."acme/cloudflare".path;
       };
