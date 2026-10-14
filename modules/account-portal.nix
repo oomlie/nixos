@@ -100,6 +100,7 @@ in {
         "https://music.daze.lol/oauth2/callback"
         "https://niri.daze.lol/oauth2/callback"
         "https://files.daze.lol/oauth2/callback"
+        "https://route.daze.lol/oauth2/callback"
       ];
     }
     {
@@ -122,6 +123,7 @@ in {
       "oauth2-proxy-music.service"
       "oauth2-proxy-files.service"
       "oauth2-proxy-niri.service"
+      "oauth2-proxy-route.service"
       "open-webui.service"
     ];
   };
@@ -136,6 +138,7 @@ in {
       "oauth2-proxy-music.service"
       "oauth2-proxy-files.service"
       "oauth2-proxy-niri.service"
+      "oauth2-proxy-route.service"
       "open-webui.service"
     ];
   };
@@ -221,6 +224,16 @@ in {
     port = 4190;
     host = "files.daze.lol";
     upstream = "[${myceliumAddresses.misty}]:8088";
+  };
+
+  # CLIProxyAPI management UI on route.daze.lol. Caddy routes only the UI
+  # surface (/ui, /management.html, /oauth2/*) here; the proxy API and the
+  # /v0/management API stay directly on 8317, key-protected as before.
+  systemd.services.oauth2-proxy-route = mkProxy {
+    name = "route";
+    port = 4193;
+    host = "route.daze.lol";
+    upstream = "127.0.0.1:8317";
   };
 
   systemd.services.tilde-requests = {

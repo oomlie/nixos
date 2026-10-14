@@ -123,6 +123,23 @@ in {
               flush_interval -1
             }
           }
+          # Management UI, behind the ratlogin guard on 4193. The panel is a
+          # single-file hash-routed SPA, so /ui is a plain alias: rewrite it to
+          # the bundled panel and let the fragment carry the client-side route.
+          handle /management.html {
+            reverse_proxy 127.0.0.1:4193
+          }
+          handle /ui {
+            rewrite * /management.html
+            reverse_proxy 127.0.0.1:4193
+          }
+          handle_path /ui/* {
+            rewrite * /management.html
+            reverse_proxy 127.0.0.1:4193
+          }
+          handle /oauth2/* {
+            reverse_proxy 127.0.0.1:4193
+          }
           handle {
             reverse_proxy 127.0.0.1:8317 {
               flush_interval -1

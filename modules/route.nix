@@ -129,6 +129,10 @@
       ENABLE_PERSISTENT_CONFIG = "false";
       ENABLE_OLLAMA_API = "false";
       ENABLE_OPENAI_API = "true";
+      # Base models from connections (route, zdr) have no `model` table row;
+      # without this, Open WebUI 0.11.4 treats unregistered models as
+      # admin-only and non-admin users see an empty model list.
+      BYPASS_MODEL_ACCESS_CONTROL = "true";
       ENABLE_WEB_SEARCH = "true";
       WEB_SEARCH_ENGINE = "searxng";
       SEARXNG_QUERY_URL = "http://127.0.0.1:3016/search";
