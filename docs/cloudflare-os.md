@@ -1,6 +1,11 @@
 # Cloudflare OS + GitHub integration
 
-Design doc. Status: proposed — nothing here is implemented yet.
+Design doc. Status (2026-10-15): the dashboard half of this design exists. Cloudflare OS is deployed at
+`os.daze.lol` from the private `oomlie/cloudflare-os-daze` wrapper repo (this document's "Phase 2"),
+and its operations are in this repository: the Access applications are managed by OpenTofu in
+`infra/cloudflare`, Workers Issues sends an email alert, and KV/R2 state is exported daily by
+`home/cloudflare-backup.nix`. The "Phase 1" Cachix work and the "Phase 3" deploy bridge are not done,
+and the GitHub Gatekeeper is not connected.
 
 ## Goal
 
