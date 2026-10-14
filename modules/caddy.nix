@@ -213,19 +213,6 @@ in {
       "https://files.daze.lol" = {
         extraConfig = proxy "127.0.0.1" 4190;
       };
-      "https://irc.daze.lol" = {
-        extraConfig = ''
-          encode zstd gzip
-          root * ${pkgs.gamja}
-          file_server
-
-          # gamja connects to soju over WebSocket.
-          @ws path /socket
-          handle @ws {
-            reverse_proxy 127.0.0.1:8818
-          }
-        '';
-      };
       "https://paste.daze.lol" = {
         extraConfig = proxy "127.0.0.1" 8090;
       };
@@ -261,6 +248,12 @@ in {
     "L+ /var/www/scryphil/phil.png - - - - ${../static/scryphil/phil.png}"
     "L+ /var/www/scryphil/thumb2.png - - - - ${../static/scryphil/thumb2.png}"
   ];
+
+  sops.secrets."acme/cloudflare" = {
+    sopsFile = ../secrets/halo.yaml;
+    mode = "0400";
+    restartUnits = ["caddy-dns-env.service"];
+  };
 
   # Expose the Cloudflare API token to caddy as CF_DNS_API_TOKEN for the
   # *.daze.lol wildcard cert. systemd reads the file as root (PID1).

@@ -27,14 +27,11 @@
 
       Website:       https://$USER.daze.lol/ or https://tilde.daze.lol/~$USER/
       Web files:     ~/public_html
-      Gemini:        gemini://gemini.daze.lol/~$USER/ from ~/public_gemini
-      Gopher:        gopher://gopher.daze.lol/1/~$USER/ from ~/public_gopher
       Profile:       edit ~/.plan and ~/.project; view with `finger $USER`
       Shell:         chsh -s /run/current-system/sw/bin/zsh  (or fish/bash)
       Cron:          crontab -e
       Nix package:   nix profile install nixpkgs#<package>
       Temporary app: nix shell nixpkgs#<package>
-      IRC:           irc.daze.lol:6697 or https://irc.daze.lol/
       Pastebin:      https://paste.daze.lol/
        RSSHub:        https://rsshub.daze.lol/
       Roguelike:     dcss          (shared tildeverse crawl server)
@@ -60,13 +57,10 @@
         [ -d "$home" ] || continue
 
         chmod 0711 "$home"
-        install -d -m 0755 -o "$user" -g "$user" \
-          "$home/public_html" "$home/public_gemini" "$home/public_gopher"
+        install -d -m 0755 -o "$user" -g "$user" "$home/public_html"
         touch "$home/.plan" "$home/.project"
         chown "$user:$user" "$home/.plan" "$home/.project"
         chmod 0644 "$home/.plan" "$home/.project"
-        ln -sfn "$home/public_gemini" "/var/lib/agate/content/~$user"
-        ln -sfn "$home/public_gopher" "/var/lib/gopher/~$user"
       done
       IFS="$old_ifs"
     '';
@@ -118,25 +112,16 @@
       useradd -m -G tilde,radio -s "$shell" "$user"
       chmod 0711 "/home/$user"
       install -d -m 0755 -o "$user" -g "$user" "/home/$user/public_html"
-      install -d -m 0755 -o "$user" -g "$user" "/home/$user/public_gemini"
-      install -d -m 0755 -o "$user" -g "$user" "/home/$user/public_gopher"
       install -d -m 0700 -o "$user" -g "$user" "/home/$user/.ssh"
       install -m 0600 -o "$user" -g "$user" "$keyfile" "/home/$user/.ssh/authorized_keys"
       printf '%s\n' "welcome to tilde" >"/home/$user/public_html/index.html"
-      printf '%s\n' "# $user on daze.lol" >"/home/$user/public_gemini/index.gmi"
-      printf '%s\n' "Welcome to $user's gopher hole." >"/home/$user/public_gopher/index.gph"
       printf '%s\n' "New here. More soon." >"/home/$user/.plan"
       printf '%s\n' "Personal projects on daze.lol" >"/home/$user/.project"
       chown "$user:$user" \
         "/home/$user/public_html/index.html" \
-        "/home/$user/public_gemini/index.gmi" \
-        "/home/$user/public_gopher/index.gph" \
         "/home/$user/.plan" \
         "/home/$user/.project"
       chmod 0644 "/home/$user/.plan" "/home/$user/.project"
-
-      ln -sfn "/home/$user/public_gemini" "/var/lib/agate/content/~$user"
-      ln -sfn "/home/$user/public_gopher" "/var/lib/gopher/~$user"
 
       echo "created $user; site: https://$user.daze.lol/" >&2
     '';
@@ -201,26 +186,16 @@ in {
     wget
   ];
 
-  # New homes get publishing/profile directories automatically. The shared
-  # roots contain only symlinks into explicitly public user directories.
+  # New homes get a publishing directory automatically.
   systemd.tmpfiles.rules = [
     "d /etc/skel/public_html 0755 root root - -"
-    "d /etc/skel/public_gemini 0755 root root - -"
-    "d /etc/skel/public_gopher 0755 root root - -"
-    "d /var/lib/agate 0755 root root - -"
-    "d /var/lib/agate/content 0755 root root - -"
-    "d /var/lib/gopher 0755 gopher gopher - -"
     "d /var/www/tilde/users 0755 root root - -"
     "d /var/www/planet 0755 root root - -"
   ];
 
   systemd.services.tilde-user-layout = {
-    description = "Create private pubnix home layouts and publishing links";
+    description = "Create private pubnix home layouts";
     after = ["systemd-tmpfiles-setup.service"];
-    before = [
-      "agate.service"
-      "geomyidae.service"
-    ];
     wantedBy = ["multi-user.target"];
     serviceConfig = {
       Type = "oneshot";

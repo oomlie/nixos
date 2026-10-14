@@ -19,7 +19,7 @@
     text = ''
       set -euo pipefail
 
-       allowed="niri ratlogin caddy forgejo vikunja searx tranquil-pds knot spindle garage hold podman-hold cli-proxy-api open-webui openrouter-zdr-proxy microbin rsshub tilde-members tilde-planet tilde-user-layout soju i2pd sshd agate geomyidae tilde-requests oauth2-proxy-pds-admin oauth2-proxy-requests pds-operator zeta-llama zeta-adapter qwen-llama"
+       allowed="niri ratlogin caddy forgejo vikunja searx tranquil-pds knot spindle garage hold podman-hold cli-proxy-api open-webui openrouter-zdr-proxy microbin rsshub tilde-members tilde-planet tilde-user-layout sshd tilde-requests oauth2-proxy-pds-admin oauth2-proxy-requests pds-operator zeta-llama zeta-adapter qwen-llama"
 
       if [ "$#" -lt 1 ]; then
         echo "usage: niri-logs <unit> [lines] | niri-logs --failed [lines]" >&2

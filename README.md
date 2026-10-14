@@ -89,10 +89,6 @@ Non-HTTP listeners on halo, opened in `modules/hardening.nix`:
 
 | Listener | Service | Auth |
 | --- | --- | --- |
-| `gemini://gemini.daze.lol/~user/` (`:1965`) | Agate capsules | public |
-| `gopher://gopher.daze.lol/1/~user/` (`:70`) | geomyidae holes | public |
-| `irc.daze.lol:6697` (+ gamja over `/socket`) | soju bouncer | soju accounts |
-| `:4567` (TCP/UDP) | i2pd router and tilde eepsite | loopback proxies |
 | `:4242`, `:2965`, `:29665` | Reticulum TCP and AutoInterface | Reticulum |
 
 ## deploying

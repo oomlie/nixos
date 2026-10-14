@@ -217,9 +217,6 @@
             ./modules/qwen.nix
             ./modules/qwen3-0.6b.nix
             ./modules/tunnel.nix
-            ./modules/irc.nix
-            ./modules/i2p.nix
-            ./modules/small-internet.nix
             ./modules/niri.nix
             ./hosts/halo/configuration.nix
             inputs.tangled.nixosModules.knot

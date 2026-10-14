@@ -25,13 +25,11 @@ _: {
   # Open ports:
   #   22   ssh
   #   80/443  Caddy (HTTP + automatic HTTPS)
-  #   4567  i2pd router (TCP + UDP)
-  #   6697  soju IRC bouncer (TLS)
   #   2965/29665  Reticulum AutoInterface (UDP)
   #   4242  Reticulum TCP
   networking.firewall = {
-    allowedTCPPorts = [22 70 80 443 1965 4567 6697 4242];
-    allowedUDPPorts = [4567 2965 29665];
+    allowedTCPPorts = [22 80 443 4242];
+    allowedUDPPorts = [2965 29665];
     allowedUDPPortRanges = [
       {
         from = 60000;

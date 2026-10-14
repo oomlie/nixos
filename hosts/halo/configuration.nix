@@ -73,7 +73,7 @@ in {
 
   systemd.tmpfiles.rules = ["d /srv/music 0755 molly users - -"];
 
-  # Reticulum Network Stack daemon (overlay network, coexists with i2pd).
+  # Reticulum Network Stack daemon (overlay network).
   systemd.services.rnsd = {
     description = "Reticulum Network Stack Daemon";
     after = ["network.target"];
@@ -97,7 +97,6 @@ in {
     folders = [
       "/var/lib/forgejo"
       "/var/lib/private/vikunja"
-      "/var/lib/soju"
       "/var/lib/ratlogin"
       "/var/lib/pds-operator"
       "/var/lib/tranquil-pds"
@@ -110,10 +109,10 @@ in {
     ];
     preBackupScript = ''
       ${systemctl} stop podman-hold podman-cli-proxy-api open-webui garage \
-        pds-operator ratlogin soju vikunja forgejo tranquil-pds romm postgresql
+        pds-operator ratlogin vikunja forgejo tranquil-pds romm postgresql
     '';
     postBackupScript = ''
-      ${systemctl} start postgresql romm tranquil-pds forgejo vikunja soju \
+      ${systemctl} start postgresql romm tranquil-pds forgejo vikunja \
         ratlogin pds-operator garage podman-hold podman-cli-proxy-api open-webui
     '';
   };

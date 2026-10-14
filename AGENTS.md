@@ -38,7 +38,7 @@
   chi keeps the legacy `mollyw` login, declared in `hosts/chi/users.nix`.
 - SSH public keys live in `keys.nix` and are referenced by account modules,
   rosters, and installer images — never paste the same key twice.
-- Service accounts (`jellyfin`, `qwen`, `niri`, `soju`, …) stay in their
+- Service accounts (`jellyfin`, `qwen`, `niri`, `jade`, …) stay in their
   service modules; do not move them into `users/`.
 - Only encrypted SOPS YAML belongs under `secrets/`; never store plaintext there.
   `halo` and `misty` share the encrypted files declared in `.sops.yaml`.

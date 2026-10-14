@@ -81,13 +81,6 @@ _: {
             };
           }
           {
-            IRC = {
-              icon = "mdi-forum";
-              href = "https://irc.daze.lol/";
-              description = "soju and gamja";
-            };
-          }
-          {
             Search = {
               icon = "mdi-magnify";
               href = "https://search.daze.lol/";
