@@ -8,7 +8,6 @@
 in {
   imports = [
     ./hardware-configuration.nix
-    ./models-paused.nix
     ./users.nix
   ];
 

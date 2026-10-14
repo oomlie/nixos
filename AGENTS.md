@@ -13,8 +13,10 @@
   hardware configuration itself must change.
 - `system.stateVersion` and `home.stateVersion` are compatibility pins, not
   release-version markers. Do not bump them during routine input updates.
-- `hosts/halo/models-paused.nix` is a temporary override that keeps halo's
-  local model services stopped. Remove its import to resume model hosting.
+- `hosts/halo/models-paused.nix` is an opt-in override that removes halo's
+  local model services so a build or deploy skips their GGUF closures. It is
+  not imported by default; add the import when you need it, and remember that
+  deploying with it active stops live inference.
 
 ## Verification
 
