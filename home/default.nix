@@ -134,6 +134,7 @@ in {
     ./niri.nix
     ./cloudflare-backup.nix
     ./fleet-status-collector.nix
+    ./fleet-deploy-runner.nix
     ./noctalia.nix
     ./opencode.nix
     ./qutebrowser.nix
