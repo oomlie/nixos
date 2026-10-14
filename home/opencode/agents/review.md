@@ -1,7 +1,7 @@
 ---
 description: Reviews the current changeset for bugs, regressions, security risks, and missing tests without modifying files.
 mode: subagent
-model: route/gpt-5.6-luna
+model: route/deepseek-platform-flash
 temperature: 0.1
 permission:
   edit: deny

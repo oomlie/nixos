@@ -7,8 +7,8 @@
 }: let
   models = {
     primary = "route/gpt-5.6-sol";
-    small = "route/gpt-5.6-luna";
-    worker = "route/gpt-5.6-luna";
+    small = "route/deepseek-platform-flash";
+    worker = "route/deepseek-platform-flash";
   };
   ponytail = pkgs.fetchFromGitHub {
     owner = "DietrichGebert";
@@ -159,6 +159,18 @@ in {
               limit = {
                 context = 372000;
                 output = 128000;
+              };
+            };
+            "deepseek-platform-flash" = {
+              name = "DeepSeek Platform Flash";
+              reasoning = true;
+              modalities = {
+                input = ["text"];
+                output = ["text"];
+              };
+              limit = {
+                context = 1000000;
+                output = 393216;
               };
             };
             "gpt-5.6-terra" = {
