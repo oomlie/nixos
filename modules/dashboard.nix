@@ -1,4 +1,4 @@
-_: {
+{config, ...}: {
   services.homepage-dashboard = {
     enable = true;
     listenPort = 8096;
@@ -59,6 +59,13 @@ _: {
           provider = "custom";
           url = "https://search.daze.lol/search?q=";
           target = "_blank";
+        };
+      }
+      {
+        cloudflared = {
+          accountid = "ab50bec72354666a941823793fef426a";
+          tunnelid = "94eac33d-eb81-4eea-855c-727f2e6898af";
+          key = "{{HOMEPAGE_VAR_CF_TUNNEL_TOKEN}}";
         };
       }
     ];
@@ -151,6 +158,13 @@ _: {
               description = "ATProto personal data server";
             };
           }
+          {
+            "Cloudflare OS" = {
+              icon = "mdi-cloud";
+              href = "https://os.daze.lol/";
+              description = "agents, gadgets and connectors";
+            };
+          }
         ];
       }
       {
@@ -194,6 +208,17 @@ _: {
       }
     ];
   };
+
+  # Read-only Cloudflare Tunnel token for the cloudflared widget; the account and tunnel IDs are not
+  # secret and stay inline above. systemd reads the rendered file as root, so mode 0400 is fine.
+  sops.secrets."cloudflare/homepage-tunnel-token" = {
+    sopsFile = ../secrets/halo.yaml;
+    mode = "0400";
+    restartUnits = ["homepage-dashboard.service"];
+  };
+  sops.templates."homepage-dashboard.env".content = "HOMEPAGE_VAR_CF_TUNNEL_TOKEN=${config.sops.placeholder."cloudflare/homepage-tunnel-token"}\n";
+  systemd.services.homepage-dashboard.serviceConfig.EnvironmentFile =
+    config.sops.templates."homepage-dashboard.env".path;
 
   systemd.services.homepage-dashboard.environment.HOSTNAME = "127.0.0.1";
 }
