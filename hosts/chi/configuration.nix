@@ -1,5 +1,6 @@
 {
   lib,
+  myceliumAddresses,
   pkgs,
   inputs,
   ...
@@ -7,6 +8,7 @@
   imports = [
     ./desktop.nix
     ./hardware-configuration.nix
+    ./users.nix
   ];
 
   nixpkgs.overlays = [inputs.niri.overlays.niri];
@@ -16,13 +18,13 @@
   nix.settings.extra-trusted-public-keys = ["noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="];
 
   # Use misty for x86_64-linux builds. chi and misty are on different LANs, so
-  # the builder is reached over the tailnet; root logs in by key (misty has no
+  # the builder is reached over Mycelium; root logs in by key (misty has no
   # dedicated builder account) and is a trusted user there.
   nix = {
     distributedBuilds = true;
     buildMachines = [
       {
-        hostName = "100.64.0.4";
+        hostName = myceliumAddresses.misty;
         sshUser = "root";
         sshKey = "/home/mollyw/.ssh/mol";
         system = "x86_64-linux";
@@ -42,34 +44,20 @@
   # Hostname
   networking.hostName = "chi";
 
-  # Join the private Headscale tailnet (control plane on vista,
-  # https://head.daze.lol). Enrolment uses a short-lived pre-auth key via
-  # `tailscale up`; see TAILNET.md. DNS is not overridden.
-  services.tailscale.enable = true;
-
-  # User account
-  users.users.mollyw = {
-    isNormalUser = true;
-    description = "Molly Wunderlich";
-    shell = pkgs.zsh;
-    # The input group lets the user gesture service read the internal touchscreen.
-    extraGroups = ["input" "networkmanager" "wheel" "dialout"];
+  # Resolve `misty` over Mycelium for root (borgbackup runs as root and has no
+  # per-user SSH config).
+  networking.hosts = {
+    "${myceliumAddresses.misty}" = ["misty"];
   };
 
-  # Passwordless sudo is deliberate: this user administers the host and drives
-  # non-interactive remote deploys (`nixos-rebuild --use-remote-sudo`). It does
-  # make the account root-equivalent, so treat its SSH key accordingly.
-  security.sudo.extraRules = [
-    {
-      users = ["mollyw"];
-      commands = [
-        {
-          command = "ALL";
-          options = ["NOPASSWD"];
-        }
-      ];
-    }
+  # Irreplaceable local credential state, backed up to misty by Clan borgbackup.
+  clan.core.state.credentials.folders = [
+    "/home/mollyw/.ssh"
+    "/home/mollyw/.gnupg"
+    "/home/mollyw/.local/share/keyrings"
   ];
+
+  sops.age.keyFile = "/var/lib/clan-sops/key.txt";
 
   programs.zsh.enable = true;
   # HM's compinit in ~/.zshrc owns the fpath; skip the duplicate run in /etc/zshrc

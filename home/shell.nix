@@ -1,4 +1,8 @@
-{pkgs, ...}: {
+{
+  myceliumAddresses,
+  pkgs,
+  ...
+}: {
   programs = {
     zsh = {
       enable = true;
@@ -48,7 +52,7 @@
           ControlPersist = "10m";
         };
         halo = {
-          HostName = "100.64.0.1";
+          HostName = myceliumAddresses.halo;
           User = "molly";
         };
         chi = {
@@ -56,11 +60,11 @@
           User = "mollyw";
         };
         misty = {
-          HostName = "100.64.0.4";
+          HostName = myceliumAddresses.misty;
           User = "molly";
         };
         dsh = {
-          HostName = "100.64.0.1";
+          HostName = myceliumAddresses.halo;
           User = "molly";
           RequestTTY = "force";
           RemoteCommand = "/home/molly/dsh-tui/ssh-entry.sh";

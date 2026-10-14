@@ -27,6 +27,9 @@
       fi
       export ROUTE_API_KEY
 
+      DAZE_API_KEY="$ROUTE_API_KEY"
+      export DAZE_API_KEY
+
       FLUX_MCP_TOKEN="$(secret-tool lookup service flux-mcp host kanban-mcp.daze.lol user molly || true)"
       if [[ -z "$FLUX_MCP_TOKEN" ]]; then
         echo "opencode: Flux MCP token not found in the keyring" >&2
@@ -45,7 +48,7 @@ in {
     settings = {
       model = models.primary;
       small_model = models.small;
-      enabled_providers = ["route"];
+      enabled_providers = ["route" "daze"];
       references.agent-wiki = {
         path = "./wiki";
         description = "Private, curated cross-session knowledge for durable decisions, preferences, project context, and runbooks. Search it before asking for information that may have been established previously.";
@@ -113,6 +116,17 @@ in {
       };
 
       provider = {
+        daze = {
+          name = "Daze";
+          npm = "@ai-sdk/openai-compatible";
+          options = {
+            baseURL = "https://route.daze.lol/v1";
+            apiKey = "{env:DAZE_API_KEY}";
+          };
+          models."gemini-4-argon-highGemini" = {
+            name = "Gemini 4 Argon HighGemini";
+          };
+        };
         route = {
           name = "route.daze.lol";
           npm = "@ai-sdk/openai";

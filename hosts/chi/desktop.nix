@@ -20,7 +20,7 @@
   };
 
   # Noctalia login UI; its module configures greetd and AccountsService.
-  programs.noctalia-greeter = {
+  services.displayManager.noctalia-greeter = {
     enable = true;
     settings = {
       session.default = "niri";
@@ -32,7 +32,7 @@
   # Niri compositor
   programs.niri = {
     enable = true;
-    package = pkgs.niri-unstable;
+    package = pkgs.niri;
   };
 
   # Rotate the internal display from the Framework's accelerometer data.
