@@ -243,6 +243,19 @@ resource "cloudflare_zero_trust_access_application" "os" {
       id         = cloudflare_zero_trust_access_policy.os_users.id
       precedence = 1
     },
+    # Admits the fleet collector's service token (non_identity = no user login). Scoped to the whole
+    # app rather than the ingest path; the token is a machine credential held only in sops, and an
+    # identity-less request still fails the Workshop's own admin check.
+    {
+      decision   = "non_identity"
+      name       = "Cloudflare OS fleet collector"
+      precedence = 2
+      include = [{
+        service_token = {
+          token_id = cloudflare_zero_trust_access_service_token.fleet_collector.id
+        }
+      }]
+    },
   ]
   service_auth_401_redirect = null
   session_duration          = "24h"

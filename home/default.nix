@@ -133,6 +133,7 @@ in {
     ./foot.nix
     ./niri.nix
     ./cloudflare-backup.nix
+    ./fleet-status-collector.nix
     ./noctalia.nix
     ./opencode.nix
     ./qutebrowser.nix
