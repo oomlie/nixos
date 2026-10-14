@@ -6,7 +6,7 @@
   ...
 }: let
   models = {
-    primary = "route/gpt-5.6-sol";
+    primary = "route/claude-sonnet-5-5";
     small = "route/deepseek-platform-flash";
     worker = "route/deepseek-platform-flash";
   };
@@ -158,6 +158,19 @@ in {
               };
               limit = {
                 context = 372000;
+                output = 128000;
+              };
+            };
+            "claude-sonnet-5-5" = {
+              name = "Claude Sonnet 5.5";
+              attachment = true;
+              reasoning = true;
+              modalities = {
+                input = ["text" "image" "pdf"];
+                output = ["text"];
+              };
+              limit = {
+                context = 1000000;
                 output = 128000;
               };
             };
