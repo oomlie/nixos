@@ -1,0 +1,5 @@
+.terraform/
+# Plans can embed values; only the (encrypted) state is committed.
+*.tfplan
+*.tfstate.backup
+generated.tf
