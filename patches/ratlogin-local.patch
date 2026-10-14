@@ -1,0 +1,573 @@
+diff --git a/src/atproto.rs b/src/atproto.rs
+index c31fdfa..694d853 100644
+--- a/src/atproto.rs
++++ b/src/atproto.rs
+@@ -19,6 +19,7 @@ use jacquard_oauth::keyset::Keyset;
+ use jacquard_oauth::scopes::Scopes;
+ use jacquard_oauth::session::ClientData;
+ use jacquard_oauth::types::{AuthorizeOptions, CallbackParams, OAuthClientMetadata};
++use serde::Deserialize;
+ use url::Url;
+ 
+ use crate::authstore::SqliteAuthStore;
+@@ -49,6 +50,7 @@ pub trait AtprotoLogin: Send + Sync {
+ pub struct Login {
+     pub identity: Identity,
+     pub email: Option<EmailClaim>,
++    pub avatar: Option<String>,
+ }
+ 
+ #[derive(Clone, Debug, Eq, PartialEq)]
+@@ -143,6 +145,44 @@ fn email_claim(address: Option<&str>, confirmed: Option<bool>) -> Option<EmailCl
+     })
+ }
+ 
++#[derive(Deserialize)]
++struct ProfileAvatar {
++    avatar: Option<String>,
++}
++
++fn profile_avatar(body: &[u8]) -> Option<String> {
++    serde_json::from_slice::<ProfileAvatar>(body)
++        .ok()
++        .and_then(|profile| profile.avatar)
++}
++
++#[derive(Deserialize)]
++struct Relationships {
++    relationships: Vec<Relationship>,
++}
++
++#[derive(Deserialize)]
++struct Relationship {
++    did: String,
++    following: Option<String>,
++    #[serde(rename = "followedBy")]
++    followed_by: Option<String>,
++}
++
++fn is_mutual(body: &[u8], did: &Did) -> bool {
++    serde_json::from_slice::<Relationships>(body)
++        .ok()
++        .and_then(|response| {
++            response
++                .relationships
++                .into_iter()
++                .find(|relationship| relationship.did == did.as_str())
++        })
++        .is_some_and(|relationship| {
++            relationship.following.is_some() && relationship.followed_by.is_some()
++        })
++}
++
+ fn did_from_well_known(status: http::StatusCode, body: &[u8]) -> Result<Did, String> {
+     if !status.is_success() {
+         return Err(format!("well-known returned {status}"));
+@@ -184,6 +224,10 @@ pub enum LoginError {
+         did: String,
+         reason: String,
+     },
++    #[error("{0} is not a mutual of the configured account")]
++    NotMutual(Handle),
++    #[error("could not verify the mutual-follow relationship: {0}")]
++    MutualLookup(String),
+ }
+ 
+ pub fn client_metadata(
+@@ -299,6 +343,8 @@ pub struct JacquardLogin {
+     store: SqliteAuthStore,
+     resolver: HandleResolver,
+     documents: JacquardResolver<outbound::Client>,
++    profiles: outbound::Client,
++    mutuals_of: Option<Handle>,
+ }
+ 
+ impl JacquardLogin {
+@@ -318,14 +364,77 @@ impl JacquardLogin {
+         )?;
+         let documents = http.limited(HTTP_TIMEOUT, outbound::MAX_BODY_BYTES);
+         let well_known = http.limited(HTTP_TIMEOUT, WELL_KNOWN_MAX_BYTES);
++        let profiles = http.limited(HTTP_TIMEOUT, outbound::MAX_BODY_BYTES);
++        let mutuals_of = config
++            .mutuals_of
++            .as_deref()
++            .map(Handle::parse)
++            .transpose()
++            .map_err(|error| LoginError::Resolver(format!("invalid mutuals_of handle: {error}")))?;
+         Ok(Self {
+             client: OAuthClient::new(store.clone(), client_data, http),
+             store,
+             resolver: HandleResolver::from_system(well_known)?,
+             documents: JacquardResolver::new(documents, ResolverOptions::default()),
++            profiles,
++            mutuals_of,
+         })
+     }
+ 
++    async fn permits_login(&self, identity: &Identity) -> Result<bool, String> {
++        let Some(handle) = &self.mutuals_of else {
++            return Ok(true);
++        };
++        let owner = self
++            .resolver
++            .resolve(handle)
++            .await
++            .map_err(|error| error.to_string())?;
++        if owner == identity.did {
++            return Ok(true);
++        }
++        let mut url =
++            Url::parse("https://public.api.bsky.app/xrpc/app.bsky.graph.getRelationships")
++                .map_err(|error| error.to_string())?;
++        url.query_pairs_mut()
++            .append_pair("actor", owner.as_str())
++            .append_pair("others", identity.did.as_str());
++        let (status, body) = self
++            .profiles
++            .get(&url)
++            .await
++            .map_err(|error| error.to_string())?;
++        if !status.is_success() {
++            return Err(format!("getRelationships returned {status}"));
++        }
++        Ok(is_mutual(&body, &identity.did))
++    }
++
++    async fn avatar_of(&self, did: &Did) -> Option<String> {
++        match self.fetch_avatar(did).await {
++            Ok(avatar) => avatar,
++            Err(reason) => {
++                tracing::debug!(reason, "no profile avatar for the login");
++                None
++            }
++        }
++    }
++
++    async fn fetch_avatar(&self, did: &Did) -> Result<Option<String>, String> {
++        let mut url = Url::parse("https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile")
++            .map_err(|error| error.to_string())?;
++        url.query_pairs_mut().append_pair("actor", did.as_str());
++        let (status, body) = self
++            .profiles
++            .get(&url)
++            .await
++            .map_err(|error| error.to_string())?;
++        if !status.is_success() {
++            return Err(format!("getProfile returned {status}"));
++        }
++        Ok(profile_avatar(&body))
++    }
++
+     async fn document_summary(
+         &self,
+         did: &Did,
+@@ -430,7 +539,17 @@ impl AtprotoLogin for JacquardLogin {
+             .delete_session(&authenticated, session_id.as_str())
+             .await;
+         let identity = verify_identity(self, handle, authenticated.as_ref(), resolved?).await?;
+-        Ok(Login { identity, email })
++        match self.permits_login(&identity).await {
++            Ok(true) => {}
++            Ok(false) => return Err(LoginError::NotMutual(handle.clone())),
++            Err(reason) => return Err(LoginError::MutualLookup(reason)),
++        }
++        let avatar = self.avatar_of(&identity.did).await;
++        Ok(Login {
++            identity,
++            email,
++            avatar,
++        })
+     }
+ }
+ 
+@@ -443,6 +562,23 @@ mod tests {
+     const ALICE: &str = "did:plc:aaaaaaaaaaaaaaaaaaaaaaaa";
+     const MALLORY: &str = "did:plc:mmmmmmmmmmmmmmmmmmmmmmmm";
+ 
++    #[test]
++    fn relationship_requires_both_follow_directions() {
++        let mutual = br#"{"relationships":[{"did":"did:plc:aaaaaaaaaaaaaaaaaaaaaaaa","following":"at://one","followedBy":"at://two"}]}"#;
++        let one_way = br#"{"relationships":[{"did":"did:plc:aaaaaaaaaaaaaaaaaaaaaaaa","following":"at://one"}]}"#;
++        assert!(is_mutual(mutual, &did(ALICE)));
++        assert!(!is_mutual(one_way, &did(ALICE)));
++    }
++
++    #[test]
++    fn profile_avatar_reads_the_public_appview_response() {
++        let profile = br#"{"avatar":"https://cdn.bsky.app/avatar.jpg"}"#;
++        assert_eq!(
++            profile_avatar(profile).as_deref(),
++            Some("https://cdn.bsky.app/avatar.jpg")
++        );
++    }
++
+     fn handle(value: &str) -> Handle {
+         Handle::parse(value).expect("handle")
+     }
+diff --git a/src/cli.rs b/src/cli.rs
+index fe06b65..466815c 100644
+--- a/src/cli.rs
++++ b/src/cli.rs
+@@ -373,6 +373,7 @@ mod tests {
+                 auth_time: now,
+                 expires_at: now + jiff::SignedDuration::from_hours(1),
+                 email: None,
++                avatar: None,
+             })
+             .expect("session");
+         let out = ratlogin(dir.path(), &["revoke-sessions", "--did", alice.as_str()])
+diff --git a/src/config.rs b/src/config.rs
+index b3b0de3..c0dcd59 100644
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -23,6 +23,7 @@ struct FileConfig {
+     rate_limit: RateLimit,
+     #[serde(default)]
+     webfinger_domains: Vec<String>,
++    mutuals_of: Option<String>,
+     #[serde(default = "default_session_days")]
+     session_days: u64,
+     #[serde(default)]
+@@ -136,6 +137,7 @@ pub struct ServerConfig {
+     pub allow_private_fetch: bool,
+     pub rate_limit: RateLimit,
+     pub webfinger_domains: Vec<String>,
++    pub mutuals_of: Option<String>,
+     pub session_days: u64,
+ }
+ 
+@@ -173,6 +175,7 @@ impl ServerConfig {
+             allow_private_fetch: false,
+             rate_limit: RateLimit::default(),
+             webfinger_domains: Vec::new(),
++            mutuals_of: None,
+             session_days: 30,
+         })
+     }
+@@ -208,6 +211,10 @@ impl ServerConfig {
+         }
+         config.rate_limit = file.rate_limit;
+         config.session_days = file.session_days;
++        config.mutuals_of = file
++            .mutuals_of
++            .or_else(|| std::env::var("RATLOGIN_MUTUALS_OF").ok())
++            .filter(|handle| !handle.trim().is_empty());
+         config.webfinger_domains = file
+             .webfinger_domains
+             .into_iter()
+diff --git a/src/flows.rs b/src/flows.rs
+index c2124f1..a2f4c8a 100644
+--- a/src/flows.rs
++++ b/src/flows.rs
+@@ -44,6 +44,8 @@ pub struct AuthorizationCode {
+     #[serde(default)]
+     pub email: Option<EmailClaim>,
+     #[serde(default)]
++    pub avatar: Option<String>,
++    #[serde(default)]
+     pub scopes: Vec<Scope>,
+ }
+ 
+@@ -55,6 +57,8 @@ pub struct BrowserSession {
+     pub expires_at: Timestamp,
+     #[serde(default)]
+     pub email: Option<EmailClaim>,
++    #[serde(default)]
++    pub avatar: Option<String>,
+ }
+ 
+ #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+@@ -64,6 +68,8 @@ pub struct AccessToken {
+     #[serde(default)]
+     pub email: Option<EmailClaim>,
+     #[serde(default)]
++    pub avatar: Option<String>,
++    #[serde(default)]
+     pub scopes: Vec<Scope>,
+ }
+ 
+@@ -325,6 +331,7 @@ mod tests {
+             auth_time: Timestamp::now(),
+             expires_at,
+             email: None,
++            avatar: None,
+             scopes: Vec::new(),
+         }
+     }
+@@ -343,6 +350,7 @@ mod tests {
+             auth_time: now,
+             expires_at: now + SignedDuration::from_hours(1),
+             email: None,
++            avatar: None,
+         };
+         let value = store.create_session(session.clone()).expect("create");
+         assert_eq!(store.session(&value, now).expect("lookup"), Some(session));
+@@ -373,6 +381,7 @@ mod tests {
+                 identity: identity(),
+                 expires_at: now + TOKEN_LIFETIME,
+                 email: None,
++                avatar: None,
+                 scopes: Vec::new(),
+             })
+             .expect("issue");
+diff --git a/src/oidc.rs b/src/oidc.rs
+index d3af456..7552e1b 100644
+--- a/src/oidc.rs
++++ b/src/oidc.rs
+@@ -385,6 +385,8 @@ pub struct IdTokenClaims {
+     pub email: Option<String>,
+     #[serde(skip_serializing_if = "Option::is_none")]
+     pub email_verified: Option<bool>,
++    #[serde(skip_serializing_if = "Option::is_none")]
++    pub picture: Option<String>,
+     pub groups: Vec<String>,
+ }
+ 
+@@ -401,6 +403,7 @@ impl IdTokenClaims {
+         Self {
+             email_verified: None,
+             email: None,
++            picture: None,
+             groups: vec![identity.did.as_str().to_owned()],
+             iss: issuer.to_owned(),
+             sub: identity.did.as_str().to_owned(),
+@@ -419,6 +422,11 @@ impl IdTokenClaims {
+         self.email = email.map(|email| email.address);
+         self
+     }
++
++    pub fn with_picture(mut self, picture: Option<String>) -> Self {
++        self.picture = picture;
++        self
++    }
+ }
+ 
+ #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+diff --git a/src/web/authorize.rs b/src/web/authorize.rs
+index 913bd39..14100fc 100644
+--- a/src/web/authorize.rs
++++ b/src/web/authorize.rs
+@@ -334,6 +334,7 @@ pub(super) async fn complete_callback<L: AtprotoLogin>(
+             );
+             state.flows.release(flow_state)?;
+             return Ok(match error {
++                LoginError::NotMutual(_) => error_page(StatusCode::FORBIDDEN, &error.to_string()),
+                 LoginError::HandleNotListed { .. }
+                 | LoginError::PrimaryHandleUnverified { .. }
+                 | LoginError::HandleMismatch { .. }
+@@ -369,6 +370,7 @@ pub(super) async fn complete_callback<L: AtprotoLogin>(
+             auth_time: now,
+             expires_at: now + lifetime,
+             email: login.email.clone(),
++            avatar: login.avatar.clone(),
+         })?;
+         extra.push((SET_COOKIE, session_cookie(&value, lifetime.as_secs())));
+     }
+@@ -379,6 +381,7 @@ pub(super) async fn complete_callback<L: AtprotoLogin>(
+         Authenticated {
+             identity: login.identity,
+             email: login.email,
++            avatar: login.avatar,
+             auth_time: now,
+         },
+         now,
+diff --git a/src/web/discovery.rs b/src/web/discovery.rs
+index 1a09ff8..f5d0098 100644
+--- a/src/web/discovery.rs
++++ b/src/web/discovery.rs
+@@ -84,7 +84,7 @@ pub(super) async fn discovery<L>(State(state): State<Arc<AppState<L>>>) -> Respo
+         "authorization_response_iss_parameter_supported": true,
+         "subject_types_supported": ["public"],
+         "id_token_signing_alg_values_supported": ["RS256", "ES256"],
+-        "claims_supported": ["sub", "aud", "exp", "iat", "iss", "name", "preferred_username", "nonce", "auth_time", "email", "email_verified", "groups"],
++        "claims_supported": ["sub", "aud", "exp", "iat", "iss", "name", "preferred_username", "picture", "nonce", "auth_time", "email", "email_verified", "groups"],
+         "code_challenge_methods_supported": ["S256"],
+         "token_endpoint_auth_methods_supported": ["client_secret_basic", "client_secret_post"],
+     });
+diff --git a/src/web/grant.rs b/src/web/grant.rs
+index 03cf9d1..58d43f0 100644
+--- a/src/web/grant.rs
++++ b/src/web/grant.rs
+@@ -12,6 +12,7 @@ use crate::oidc::{AuthorizationRequest, AuthorizationTarget, EmailClaim, Scope};
+ pub(super) struct Authenticated {
+     pub(super) identity: Identity,
+     pub(super) email: Option<EmailClaim>,
++    pub(super) avatar: Option<String>,
+     pub(super) auth_time: Timestamp,
+ }
+ 
+@@ -23,6 +24,7 @@ impl From<BrowserSession> for Authenticated {
+                 handle: session.handle,
+             },
+             email: session.email,
++            avatar: session.avatar,
+             auth_time: session.auth_time,
+         }
+     }
+@@ -40,6 +42,7 @@ pub(super) fn issue_code_for<L>(
+     let Authenticated {
+         identity,
+         email,
++        avatar,
+         auth_time,
+     } = authenticated;
+     let refuse = |description: &str, extra_headers| {
+@@ -95,6 +98,7 @@ pub(super) fn issue_code_for<L>(
+         auth_time,
+         expires_at: now + CODE_LIFETIME,
+         email,
++        avatar,
+         scopes: target.scopes,
+     })?;
+     Ok(redirect_to(
+diff --git a/src/web/token.rs b/src/web/token.rs
+index d9174ee..f0fe19c 100644
+--- a/src/web/token.rs
++++ b/src/web/token.rs
+@@ -135,7 +135,8 @@ pub(super) fn redeem<L>(
+         now,
+         TOKEN_LIFETIME,
+     )
+-    .with_email(code.email.clone());
++    .with_email(code.email.clone())
++    .with_picture(code.avatar.clone());
+     let id_token = state.keys.sign(&claims, client.signing_algorithm())?;
+     tracing::debug!(
+         client = client.id().as_str(),
+@@ -152,6 +153,7 @@ pub(super) fn redeem<L>(
+         identity: code.identity,
+         expires_at: now + TOKEN_LIFETIME,
+         email: code.email,
++        avatar: code.avatar,
+         scopes: code.scopes,
+     })?;
+     let body = json!({
+@@ -208,6 +210,9 @@ pub(super) async fn userinfo<L>(
+     if token.scopes.contains(&Scope::Profile) {
+         body["name"] = json!(token.identity.handle.as_str());
+         body["preferred_username"] = json!(token.identity.handle.as_str());
++        if let Some(avatar) = token.avatar {
++            body["picture"] = json!(avatar);
++        }
+     }
+     if token.scopes.contains(&Scope::Groups) {
+         body["groups"] = json!([token.identity.did.as_str()]);
+diff --git a/tests/provider/authorization.rs b/tests/provider/authorization.rs
+index 00c4e0b..d7a9a5f 100644
+--- a/tests/provider/authorization.rs
++++ b/tests/provider/authorization.rs
+@@ -238,6 +238,25 @@ async fn a_failed_pds_leg_shows_an_error_and_releases_the_flow() -> TestResult {
+     Ok(())
+ }
+ 
++#[tokio::test]
++async fn a_non_mutual_is_refused_with_a_forbidden_page() -> TestResult {
++    let state = fixture_with(config()?, Some(identity()?.did))?;
++    let mut flow = flow("client")?;
++    flow.handle = Handle::parse("stranger.example.com")?;
++    let flow_state = state.flows.begin(flow)?;
++    let (status, _, body) = callback_for(&state, &flow_state, "code=abc", "").await?;
++    assert_eq!(status, StatusCode::FORBIDDEN, "{body}");
++    assert!(body.contains("not a mutual"), "{body}");
++    assert!(
++        state
++            .flows
++            .claim(&flow_state, "right", jiff::Timestamp::now())?
++            .is_some(),
++        "the flow is released for a retry"
++    );
++    Ok(())
++}
++
+ #[tokio::test]
+ async fn a_denial_at_the_pds_returns_access_denied_to_the_client() -> TestResult {
+     let state = fixture()?;
+diff --git a/tests/provider/sessions.rs b/tests/provider/sessions.rs
+index 8e31000..18842f6 100644
+--- a/tests/provider/sessions.rs
++++ b/tests/provider/sessions.rs
+@@ -122,6 +122,7 @@ async fn stale_sessions_fail_max_age_and_prompt_none_uses_a_fresh_one() -> TestR
+         auth_time: now - SignedDuration::from_hours(2),
+         expires_at: now + SignedDuration::from_hours(1),
+         email: None,
++        avatar: None,
+     })?;
+     let cookie = format!("{SESSION_COOKIE}={old}");
+ 
+@@ -235,6 +236,7 @@ async fn a_remembered_session_is_revoked_when_its_handle_moves_but_kept_through_
+             auth_time: now,
+             expires_at: now + SignedDuration::from_hours(1),
+             email: None,
++            avatar: None,
+         })?;
+         let cookie = format!("{SESSION_COOKIE}={session}");
+         let (status, _, body) = authorize(&state, &authorize_query(), Some(&cookie)).await?;
+diff --git a/tests/provider/support.rs b/tests/provider/support.rs
+index be46da7..b78d66e 100644
+--- a/tests/provider/support.rs
++++ b/tests/provider/support.rs
+@@ -91,6 +91,9 @@ impl AtprotoLogin for FakeLogin {
+                     did: did.as_str().to_owned(),
+                 })
+             }
++            Some(did) if handle.as_str() == "stranger.example.com" => {
++                Err(LoginError::NotMutual(handle.clone()))
++            }
+             Some(did) if handle.as_str() == "alias.example.com" => Ok(Login {
+                 identity: Identity {
+                     did: did.clone(),
+@@ -98,6 +101,7 @@ impl AtprotoLogin for FakeLogin {
+                         .map_err(|error| LoginError::Upstream(error.to_string()))?,
+                 },
+                 email,
++                avatar: None,
+             }),
+             Some(did) => Ok(Login {
+                 identity: Identity {
+@@ -105,6 +109,7 @@ impl AtprotoLogin for FakeLogin {
+                     handle: handle.clone(),
+                 },
+                 email,
++                avatar: None,
+             }),
+             None => Err(LoginError::Upstream("no upstream in tests".to_owned())),
+         }
+@@ -351,6 +356,7 @@ pub(crate) fn code_record() -> Result<AuthorizationCode, Box<dyn Error>> {
+         auth_time: Timestamp::now(),
+         expires_at: Timestamp::now() + SignedDuration::from_mins(1),
+         email: None,
++        avatar: None,
+         scopes: vec![Scope::OpenId, Scope::Profile, Scope::Groups],
+     })
+ }
+diff --git a/tests/provider/token.rs b/tests/provider/token.rs
+index 985aa86..e194742 100644
+--- a/tests/provider/token.rs
++++ b/tests/provider/token.rs
+@@ -299,6 +299,26 @@ async fn stored_clients_authenticate_like_configured_ones() -> TestResult {
+     Ok(())
+ }
+ 
++#[tokio::test]
++async fn the_profile_picture_reaches_the_id_token_and_userinfo() -> TestResult {
++    let state = fixture()?;
++    let code = state.flows.issue_code(AuthorizationCode {
++        avatar: Some("https://cdn.example/avatar.jpg".to_owned()),
++        ..code_record()?
++    })?;
++    let (status, _, body) = redeem(router(Arc::clone(&state)), &code, "").await?;
++    assert_eq!(status, StatusCode::OK, "{body}");
++    let response: serde_json::Value = serde_json::from_str(&body)?;
++    let claims = jwt_payload(response["id_token"].as_str().ok_or("missing id_token")?)?;
++    assert_eq!(claims["picture"], "https://cdn.example/avatar.jpg");
++    let access_token = response["access_token"].as_str().ok_or("missing token")?;
++    let (status, _, body) = userinfo(&state, &format!("Bearer {access_token}")).await?;
++    assert_eq!(status, StatusCode::OK, "{body}");
++    let claims: serde_json::Value = serde_json::from_str(&body)?;
++    assert_eq!(claims["picture"], "https://cdn.example/avatar.jpg");
++    Ok(())
++}
++
+ #[tokio::test]
+ async fn userinfo_honours_the_granted_scopes_and_the_bearer_scheme() -> TestResult {
+     let state = fixture()?;

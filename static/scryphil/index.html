@@ -1,0 +1,164 @@
+<html>
+    
+
+<head>
+  
+<script src ="glfx.js"></script>
+
+
+<img id="guy" src="phil.png" style="margin-left:4px;">
+<img id="thumb" src="thumb2.png" style="display: none; ">
+<img id="card" src="";>
+<img id="card2" src="https://cards.scryfall.io/large/front/a/e/ae7c95da-458d-4914-9e7c-2c5fc1aa626b.jpg" style="display: none;">
+<script>
+
+const query = 'lightningbolt';
+
+async function drawcard(x){
+  
+  await x.load;
+  x.width ="680";x.height="684";
+  var canvas = fx.canvas();
+  var finger = document.getElementById("thumb");
+  var texture = canvas.texture(x);
+  texture.loadContentsOf(x);
+  canvas.draw(texture).update();
+    
+  canvas.perspective([0,0,680,0,680,684,0,684],[238,444,488,405,550,665,227,695]).update();
+    
+    
+  
+  x.style.display = "none";
+  const c = document.getElementById("myCanvas");
+  const ctx = c.getContext("2d");
+  var guypic = document.getElementById("guy");
+  guypic.style.display = "none";
+  var render = document.getElementById("finalimg")
+  ctx.clearRect(0,0,c.width, c.height);
+  ctx.drawImage(guypic,0,0);
+  ctx.shadowColor = 'rgba(0,0,0,.9)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetX = 10;
+  ctx.shadowOffsetY=4;
+  ctx.drawImage(canvas,0,0);
+  canvas.style.display = "none";
+  ctx.shadowColor = 'transparent';
+  ctx.drawImage(finger, 0,0);
+  document.getElementById("render1").src = c.toDataURL("image/png")
+  }
+guy.onload = async function() {
+  const c = document.getElementById("myCanvas");
+  const ctx = c.getContext("2d");
+  var guypic = document.getElementById("guy");
+  ctx.drawImage(guypic, 0, 0);
+  fetch("https://api.scryfall.com/cards/random", { headers: {'Accept': 'application/json;q=0.9,*/*;q=0.8', 'User-Agent':'Scryphil generator',}})
+  .then(response => response.json())
+  .then(data => {
+    if (data.hasOwnProperty("card_faces")){
+      loadcard(data.card_faces[0].image_uris.png);
+    }
+    else{
+    loadcard(data.image_uris.png);}
+  })
+}
+
+</script> 
+</head>
+<body>
+<canvas id="myCanvas" width="640" height="684" style="display: none;"></canvas>
+<img id="render1">
+<br>
+<form id = "searchForm">
+<input type="search" id="myTextBox" placeholder="Scry...">
+
+</form>
+
+<div id="cardarea"; display="flex"; height="1920"; width="1080";><img id="card" src="" style="display: none;"></div>
+<script>
+
+  image.onload = function(){
+    const box = document.getElementById("myTextBox");
+    if (Math.random()<0.05){
+      box.placeholder = "You're ugly, you're disgusting, I'm gonna kill you, give me 200 dollars...";
+    }
+  }
+
+  var target = "";
+  var cards_drawn = [];
+  var cardarea = document.getElementById("cardarea");
+  document.getElementById("searchForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+    while (cardarea.firstChild) {
+    cardarea.removeChild(cardarea.lastChild);
+    };
+    const textBox = document.getElementById("myTextBox");
+    
+    const submittedValue = textBox.value;
+    
+    console.log("Submitted text:", submittedValue);
+    fetch("https://api.scryfall.com/cards/search?q=" + submittedValue, { headers: {'Accept': 'application/json;q=0.9,*/*;q=0.8', 'User-Agent':'Scryphil generator',}})
+  .then(response => response.json())
+  .then(data => {
+    // Check if there are results and get the first item
+    if (data.total_cards > 0) {
+      const firstCard = data.data[0];
+      console.log('Card Name:', firstCard.name);
+      if (Object.hasOwn(firstCard, "card_faces") === false || Object.hasOwn(firstCard, "image_uris") === true){
+      console.log('Scryfall URI:', firstCard.image_uris.large);
+      var uri = firstCard.image_uris.png;}
+      else {
+  
+        for (let i = 0; i < firstCard.card_faces.length; i++){
+          
+          var make = firstCard.card_faces[i].image_uris.small;
+          const targetimg = firstCard.card_faces[i].image_uris.png;
+          const newimg = new Image();
+
+          const docy = cardarea.appendChild(newimg);
+          newimg.src = make;
+          newimg.imgtarget = targetimg;
+          newimg.addEventListener('click', function(){loadcard(newimg.imgtarget)});
+          cards_drawn.push(newimg);
+        }
+        var uri = firstCard.card_faces[0].image_uris.png;
+      }
+      
+      loadcard(uri);
+
+    } else {
+      console.log('No cards found.');
+    }
+  })
+  .catch(error => console.error('Error:', error));
+  })
+
+  function loadImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    
+    // Set listeners first
+    img.addEventListener('load', () => resolve(img));
+    img.addEventListener('error', (err) => reject(err));
+    
+    // Set source last
+    img.crossOrigin = "anonymous";
+    img.src = url;
+  });
+}
+
+// Usage inside an async function
+async function loadcard(url) {
+  const myImg = await loadImage(url);
+  try {
+    const myImg = await loadImage(url);
+    console.log('Image loaded with async/await');
+    
+    drawcard(myImg);
+  } catch (error) {
+    console.error('Failed to load image', error);
+  }
+};
+
+</script>
+</body>
+</html>

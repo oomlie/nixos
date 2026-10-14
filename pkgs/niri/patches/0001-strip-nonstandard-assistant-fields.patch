@@ -1,0 +1,23 @@
+--- a/packages/harness/src/llm/openai-provider.ts	2026-10-07 17:19:43.637258750 -0400
++++ b/packages/harness/src/llm/openai-provider.ts	2026-10-07 17:19:43.642475451 -0400
+@@ -390,9 +390,17 @@
+             return message
+           }
+           const { responses_output: _replay, responses_provider: _origin, ...wire } = message
+-          return deps.enableThinking && config.requiresReasoningReplay
+-            ? { ...wire, reasoning_content: wire.reasoning_content ?? wire.reasoning ?? "" }
+-            : wire
++          if (deps.enableThinking && config.requiresReasoningReplay) {
++            return { ...wire, reasoning_content: wire.reasoning_content ?? wire.reasoning ?? "" }
++          }
++          // Strict OpenAI-compatible endpoints (e.g. Mistral) reject the
++          // non-standard assistant fields `refusal` and `reasoning_content`
++          // with 422 extra_forbidden, so drop them unless replay is required.
++          const clean = { ...wire } as Record<string, unknown>
++          delete clean.refusal
++          delete clean.reasoning_content
++          delete clean.reasoning
++          return clean as unknown as typeof wire
+         }),
+         model: options.model ?? request.model,
+         tool_choice: options.toolChoice ?? request.tool_choice,

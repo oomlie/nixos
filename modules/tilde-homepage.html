@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="daze.lol — a pubnix. Shell accounts, small internet publishing, and self-hosted community services.">
+<title>daze.lol — pubnix</title>
+<link rel="icon" href="/favicon.png">
+<style>
+  @font-face{font-family:'Comic Mono';src:url('/fonts/ComicMono.woff2') format('woff2');font-weight:normal;font-display:swap}
+  @font-face{font-family:'Comic Mono';src:url('/fonts/ComicMono-Bold.woff2') format('woff2');font-weight:bold;font-display:swap}
+  body{max-width:52rem;margin:3rem auto;padding:0 1rem;font:14px/1.6 "Comic Mono","Comic Sans MS",monospace;background:#fff;color:#000}
+  a{color:#00e} a:visited{color:#551a8b}
+  h1,h2{font-size:32px;font-weight:normal;margin:.4em 0}
+  pre{overflow-x:auto;line-height:1.45}
+  hr{border:0;border-top:1px solid #000}
+  footer{color:#555}
+</style>
+
+<h1>daze.lol</h1>
+
+<pre>
+daze.lol
+├── Pubnix &amp; Shell
+│   ├── <a href="https://tilde.daze.lol/">tilde.daze.lol</a>     Home — member sites at /~user (you are here)
+│   ├── <a href="/users">&lt;user&gt;.daze.lol</a>     Personal website per member
+│   ├── <a href="https://requests.daze.lol/">requests.daze.lol</a>  Request a shell account
+│   └── <a href="/users">/users</a>             Member directory
+├── Dev
+│   ├── <a href="https://route.daze.lol/">route.daze.lol</a>     CLI Proxy API — multi-account AI model gateway
+│   ├── <a href="https://chat.daze.lol/">chat.daze.lol</a>      Open WebUI — chat frontend (route + OpenRouter)
+│   ├── <a href="https://knot.daze.lol/">knot.daze.lol</a>      Tangled Knot — decentralized git on ATProto (<a href="https://docs.tangled.org/knot-self-hosting-guide.html">about</a>)
+│   ├── <a href="https://spindle.daze.lol/">spindle.daze.lol</a>   Tangled Spindle — CI/CD runner (<a href="https://docs.tangled.org/spindles.html">about</a>)
+│   └── <a href="https://scryphil.daze.lol/">scryphil.daze.lol</a>  Scryfall card viewer — Dr. Phil holds your card
+├── Tasks &amp; Search
+│   ├── <a href="https://tasks.daze.lol/">tasks.daze.lol</a>     Vikunja — task management
+│   └── <a href="https://search.daze.lol/">search.daze.lol</a>    SearXNG — privacy metasearch
+├── Storage &amp; Media
+│   ├── <a href="https://hold.daze.lol/">hold.daze.lol</a>      ATCR container registry
+│   ├── <a href="https://music.daze.lol/">music.daze.lol</a>     Navidrome music library and player
+│   └── <a href="https://game.daze.lol/">game.daze.lol</a>      RomM — ROM library and web emulator
+├── Community
+│   ├── <a href="https://irc.daze.lol/">irc.daze.lol</a>       IRC bouncer (soju + gamja)
+│   ├── <a href="https://paste.daze.lol/">paste.daze.lol</a>     Pastebin (Microbin)
+│   └── <a href="https://rsshub.daze.lol/">rsshub.daze.lol</a>    RSSHub — feeds from any site
+└── Identity &amp; Fediverse
+    ├── <a href="https://auth.daze.lol/.well-known/openid-configuration">auth.daze.lol</a>      ratlogin — single sign-on
+    ├── <a href="https://pds.daze.lol/">pds.daze.lol</a>       ATProto PDS
+    └── <a href="https://pds-admin.daze.lol/">pds-admin.daze.lol</a> PDS Operator — PDS admin dashboard
+</pre>
+
+<h2>Shell Accounts</h2>
+<p>daze.lol is a <a href="/users">pubnix</a>: approved members get a shell account, a personal
+website, cron, and a full development toolchain (C, Rust, Go, Node, Python) plus sandboxed Nix. SSH in with your key
+and use <code>tilde-help</code> to get started. Request an account at
+<a href="https://requests.daze.lol/">requests.daze.lol</a>.</p>
+
+<hr>
+<footer>Community infrastructure. Hosted on daze.lol for the members of the tilde.</footer>
+</html>

@@ -1,0 +1,57 @@
+diff --git a/backend/handler/auth/base_handler.py b/backend/handler/auth/base_handler.py
+index 7d9aa47..0d0b69b 100644
+--- a/backend/handler/auth/base_handler.py
++++ b/backend/handler/auth/base_handler.py
+@@ -645,5 +645,52 @@ class OpenIDHandler:
+         if not user.enabled:
+             raise UserDisabledException
+ 
++        await self._sync_oidc_avatar(user, userinfo.get("picture"))
++
+         log.info("User successfully authenticated: %s", hl(email, color=CYAN))
+         return user, userinfo
++
++    async def _sync_oidc_avatar(self, user: Any, picture: Any) -> None:
++        """Copy a trusted OIDC picture claim into RomM's local avatar store."""
++        if not isinstance(picture, str) or not picture.startswith("https://"):
++            return
++
++        from io import BytesIO
++
++        import httpx
++        from fastapi import UploadFile
++
++        from handler.database import db_user_handler
++        from handler.filesystem import fs_asset_handler
++        from handler.filesystem.assets_handler import validate_image_upload
++        from utils.context import ctx_httpx_client
++
++        max_bytes = 5 * 1024 * 1024
++        try:
++            client = ctx_httpx_client.get()
++            async with client.stream(
++                "GET", picture, follow_redirects=True, timeout=10
++            ) as response:
++                response.raise_for_status()
++                content_length = response.headers.get("content-length")
++                if content_length and int(content_length) > max_bytes:
++                    return
++
++                data = bytearray()
++                async for chunk in response.aiter_bytes():
++                    data.extend(chunk)
++                    if len(data) > max_bytes:
++                        return
++
++            image = BytesIO(data)
++            upload = UploadFile(file=image, filename="avatar")
++            extension = validate_image_upload(upload, label="OIDC avatar")
++            avatar_path = fs_asset_handler.build_avatar_path(user)
++            await fs_asset_handler.write_file(
++                image, avatar_path, filename=f"avatar.{extension}"
++            )
++            file_location = f"{avatar_path}/avatar.{extension}"
++            db_user_handler.update_user(user.id, {"avatar_path": file_location})
++            user.avatar_path = file_location
++        except (HTTPException, OSError, ValueError, httpx.HTTPError) as exc:
++            log.warning("Could not sync OIDC avatar for %s: %s", user.username, exc)
