@@ -1,3 +1,9 @@
 result
 result-*
 secrets/*.key
+
+# The Jagex launcher AppImage is 140 MB, over GitHub's 100 MB limit, and was
+# stripped from history on 2026-10-14. Keep it on disk for
+# `nix-shell pkgs/jagex-launcher` (plain nix, so untracked files still work),
+# but never commit it. A copy lives in ~/backups/jagex/.
+pkgs/jagex-launcher/*.AppImage
