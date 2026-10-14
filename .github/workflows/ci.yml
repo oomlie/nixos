@@ -15,7 +15,11 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       - name: Flake checks (format, lint)
         run: nix flake check
+      # Full eval catches module/option errors without building the
+      # (multi-GB) closures, which would not fit on a hosted runner.
       - name: Evaluate chi system config
-        # Full eval catches module/option errors without building the
-        # (multi-GB) closure, which would not fit on a hosted runner.
         run: nix eval --raw .#nixosConfigurations.chi.config.system.build.toplevel.drvPath
+      - name: Evaluate halo system config
+        run: nix eval --raw .#nixosConfigurations.halo.config.system.build.toplevel.drvPath
+      - name: Evaluate misty system config
+        run: nix eval --raw .#nixosConfigurations.misty.config.system.build.toplevel.drvPath

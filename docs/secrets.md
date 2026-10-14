@@ -1,14 +1,18 @@
 # Secrets
 
-Secrets are managed with `sops-nix` and age.
+Service secrets are managed with `sops-nix` and age. Clan-generated machine
+variables live encrypted under `vars/per-machine/` and are managed by
+`clan vars`.
 
 ## Keys
 
-- chi key: `~/.config/sops/age/keys.txt`
-- halo key: `/var/lib/sops-nix/keys.txt`
+- Admin key on chi: `~/.config/sops/age/keys.txt`
+- Chi machine key: `/var/lib/clan-sops/key.txt`
+- Halo and misty machine identities: `/etc/ssh/ssh_host_ed25519_key`
 
-Keep both private key files backed up outside this repository. Only the age
-recipients in `.sops.yaml` and encrypted files under `secrets/` belong in Git.
+Keep private age and SSH host keys backed up outside this repository. Only
+public recipients under `sops/`, recipient rules in `.sops.yaml`, and encrypted
+files under `secrets/` and `vars/` belong in Git.
 
 ## Editing
 
@@ -16,16 +20,18 @@ From chi:
 
 ```bash
 sops secrets/halo.yaml
+sops secrets/misty.yaml
 ```
 
-After changing a secret, deploy halo before restarting anything that consumes
-it:
+After changing a secret, deploy the affected machine before restarting anything
+that consumes it:
 
 ```bash
-sudo nixos-rebuild switch --flake .#halo \
-  --target-host halo \
-  --use-remote-sudo
+nix develop -c clan machines update halo
+nix develop -c clan machines update misty
 ```
+
+Use `nix develop -c clan vars check chi halo misty` to validate Clan variables.
 
 ## Current pilot
 

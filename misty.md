@@ -3,7 +3,7 @@
 ## System Overview & Role
 
 - **Role**: Primary home media server, high-capacity storage vault, YouTube frontend proxy, and LAN kiosk display host.
-- **OS**: NixOS 26.11 (Zokor), declaratively managed via Flake (`nixosConfigurations.misty` in `/root/halo-nixos`).
+- **OS**: NixOS 26.11 (Zokor), declaratively managed via Flake (`nixosConfigurations.misty` in this repository).
 - **Network**: `192.168.1.174` on `eno1` (onboard Gigabit NIC with static router DHCP reservation).
 
 ---
@@ -64,7 +64,7 @@ Shared media permissions:
   - **Database**: Local PostgreSQL (`invidious` user & DB on port `5432`).
   - **Authentication**: Gated behind `ratlogin` (`https://auth.daze.lol`). Local password forms are hidden (`oidc_only = true`, `private_instance = true`).
   - **Invidious Companion**: Deno-based YouTube stream fetcher (`quay.io/invidious/invidious-companion:latest`) running via Podman on host network port `8282`.
-- **Secret Management**: Handled declaratively with `sops-nix` referencing `secrets/misty.yaml` (SOPS age key located at `/var/lib/sops-nix/keys.txt`).
+- **Secret Management**: Handled declaratively with `sops-nix` referencing `secrets/misty.yaml`; misty's persistent SSH host key provides its SOPS identity.
 
 ---
 
@@ -105,8 +105,8 @@ journalctl -u filebrowser.service -f
 
 ### Rebuilding Host & Nix Maintenance
 ```bash
-# Apply host configuration changes with nh
-nh os switch /root/halo-nixos --flake .#misty
+# Apply host configuration changes from chi (see NETWORK.md)
+clan machines update misty
 
 # Clean old Nix store generations (automated via nh-clean.timer)
 nh clean all --keep 5 --keep-since 7d
@@ -114,7 +114,10 @@ nh clean all --keep 5 --keep-since 7d
 
 ---
 
-## Headscale Tailnet Integration (Raff Technologies Plan)
+## Retired Headscale Tailnet Plan
+
+This section is historical. The fleet now uses Clan Mycelium and Iroh; see
+`NETWORK.md` for current operations.
 
 To securely connect `halo` and `misty` across networks without exposing internal media ports to the public internet:
 
@@ -133,8 +136,8 @@ To securely connect `halo` and `misty` across networks without exposing internal
    - Media administration interfaces (Jellyfin, Servarr, Seerr, FileBrowser) stay strictly closed to external WAN traffic, accessible only via Tailnet IPs.
 
 
-## Current Headscale Tailnet Status
+## Headscale Retirement Status
 
-The Headscale control plane is hosted on Raff VM `vista` at `https://head.daze.lol` (DNS-only), with public bootstrap IP `51.81.22.34`. Halo is enrolled at `100.64.0.1`; Vista is enrolled at `100.64.0.2`; Misty is enrolled at `100.64.0.4` (2026-10-06). Misty's `hosts/misty/configuration.nix` now sets `services.tailscale.enable = true`, and it was joined with a short-lived pre-auth key using `--accept-dns=false`.
+Headscale and Tailscale were retired on 2026-10-11 after chi, halo, and misty moved to Clan Mycelium and Iroh. The Vista control-plane VM was backed up and powered off, and the `head.daze.lol` DNS record was removed.
 
-Misty is reachable for administration over its assigned `100.64.0.4` tailnet address (the `192.168.1.174` LAN still serves the media interfaces). chi is not on the tailnet, so from chi reach tailnet peers through Misty: `ssh -J molly@192.168.1.174 molly@100.64.0.1` (halo) or `ssh -J molly@192.168.1.174 mollyw@100.64.0.2` (vista). The full enrollment and recovery runbook is maintained in [`halo-nixos/TAILNET.md`](../halo-nixos/TAILNET.md).
+The current topology and recovery runbook is maintained in `NETWORK.md`.

@@ -230,6 +230,6 @@ The custom `pkgs/trenchbroom` AppImage wrapper was removed from `home/default.ni
 Full details, operational runbook, and diagnostic commands are documented in [`misty.md`](./misty.md).
 
 
-## Headscale tailnet
+## Clan private network
 
-Headscale now runs on Raff Ubuntu VM `vista` at `https://head.daze.lol`; the DNS record is DNS-only. Halo is enrolled at `100.64.0.1` and Vista at `100.64.0.2`. Misty remains to be enrolled. See `../halo-nixos/TAILNET.md` for the current topology, SSH access, pre-auth key workflow, and recovery notes.
+Chi, halo, and misty use Clan Mycelium for private traffic. Clan administers halo and misty over Iroh, with Mycelium as the secondary route. See [`NETWORK.md`](./NETWORK.md) for topology, deployment, and recovery commands.
