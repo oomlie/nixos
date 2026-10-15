@@ -164,6 +164,21 @@ in {
 
       printf '%s\n' "username=molly" "password=$token"
     '';
+
+    # Same shape for git.daze.lol (Forgejo), which is now the canonical forge: the write token
+    # lives in the login keyring, not in any config file.
+    forgejoCredentialHelper = pkgs.writeShellScript "git-credential-forgejo" ''
+      if [[ "''${1:-}" != get ]]; then
+        exit 0
+      fi
+
+      token="$(${pkgs.libsecret}/bin/secret-tool lookup service forgejo user molly-write)"
+      if [[ -z "$token" ]]; then
+        exit 1
+      fi
+
+      printf '%s\n' "username=molly" "password=$token"
+    '';
   };
 
   home = {

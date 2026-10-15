@@ -3,6 +3,7 @@
   pkgs,
   config,
   giteaCredentialHelper,
+  forgejoCredentialHelper,
   browserProfile,
   ...
 }: let
@@ -151,6 +152,7 @@ in {
         push.autoSetupRemote = true;
         pull.rebase = false;
         credential."https://git.purplish.blue".helper = "${giteaCredentialHelper}";
+        credential."https://git.daze.lol".helper = "${forgejoCredentialHelper}";
         core.editor = "hx";
         merge.conflictStyle = "zdiff3";
         diff.algorithm = "histogram";
