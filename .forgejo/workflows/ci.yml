@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    # Matches the runner's label; the runner executes jobs natively on halo, which already has Nix,
+    # so there is no toolchain-installer step here.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+
+      - name: Flake checks (format, lint)
+        run: nix flake check
+
+      # Full eval catches module/option errors without building the (multi-GB) closures.
+      - name: Evaluate each host config
+        run: |
+          nix eval --raw .#nixosConfigurations.chi.config.system.build.toplevel.drvPath
+          nix eval --raw .#nixosConfigurations.halo.config.system.build.toplevel.drvPath
+          nix eval --raw .#nixosConfigurations.misty.config.system.build.toplevel.drvPath
