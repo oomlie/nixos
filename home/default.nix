@@ -136,6 +136,7 @@ in {
     ./fleet-status-collector.nix
     ./fleet-deploy-runner.nix
     ./context-docs-sync.nix
+    ./bluesky-avatar-sync.nix
     ./noctalia.nix
     ./opencode.nix
     ./qutebrowser.nix
