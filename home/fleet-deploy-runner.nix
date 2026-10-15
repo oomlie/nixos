@@ -4,9 +4,9 @@
   ...
 }: let
   # The deploy bridge's fleet half. It polls the gatekeeper for approved deploy requests, refuses
-  # anything that is not a known host at a revision already on origin/main with a green CI run, builds
-  # it, and then **activates** it: `nixos-rebuild switch` for chi (the local machine), `clan machines
-  # update` for the others.
+  # anything that is not a known host at a revision already on forgejo/main with a green Forgejo
+  # Actions run, builds it, and then **activates** it: `nixos-rebuild switch` for chi (the local
+  # machine), `clan machines update` for the others.
   #
   # A deploy here was already approved by a human in Cloudflare OS, which is the gate that matters; the
   # runner's own checks stop an approved-but-unsafe job (unknown host, unpublished revision, red CI)
@@ -20,7 +20,7 @@
     name = "fleet-deploy-runner";
     # NOTE: no pkgs.sudo here. A store copy is not setuid and shadows the real
     # /run/wrappers/bin/sudo on PATH, which is what makes `sudo -n` work.
-    runtimeInputs = with pkgs; [curl jq libsecret git gh nix coreutils gnugrep clan];
+    runtimeInputs = with pkgs; [curl jq libsecret git nix coreutils gnugrep clan];
     # SC2024 warns that `sudo` does not affect a redirect. That is exactly what is wanted here: the
     # activation log should be written by the user's own shell, not by root.
     excludeShellChecks = ["SC2024"];
@@ -34,7 +34,11 @@
       cid="$(secret-tool lookup service fleet-collector user access-client-id)"
       secret="$(secret-tool lookup service fleet-collector user access-client-secret)"
       ingest="$(secret-tool lookup service fleet-collector user ingest-token)"
-      for v in "$cid" "$secret" "$ingest"; do
+      # Forgejo is canonical: the revision and its CI result are both read from there, not GitHub.
+      forgejo="https://git.daze.lol"
+      forgejo_repo="molly/nixos"
+      ftoken="$(secret-tool lookup service forgejo user molly)"
+      for v in "$cid" "$secret" "$ingest" "$ftoken"; do
         [ -n "$v" ] || { echo "fleet-deploy-runner: missing keyring entry" >&2; exit 1; }
       done
 
@@ -49,7 +53,7 @@
       [ -e "$hold_file" ] && held=1
       [ -n "$(secret-tool lookup service fleet-deploy user hold 2>/dev/null || true)" ] && held=1
 
-      git -C "$repo" fetch -q origin
+      git -C "$repo" fetch -q forgejo
 
       jobs="$(call "$api/deploy/jobs")"
       [ "$jobs" != "[]" ] || exit 0
@@ -64,13 +68,14 @@
         if ! grep -qw -- "$host" <<<"$allowed"; then
           report "$(say rejected "host '$host' is not one this runner deploys")"; continue
         fi
-        if ! git -C "$repo" merge-base --is-ancestor "$rev" origin/main 2>/dev/null; then
-          report "$(say rejected "commit $rev is not on origin/main")"; continue
+        if ! git -C "$repo" merge-base --is-ancestor "$rev" forgejo/main 2>/dev/null; then
+          report "$(say rejected "commit $rev is not on forgejo/main")"; continue
         fi
-        if ! gh run list -R oomlie/nixos -c "$rev" --limit 1 \
-             --json status,conclusion --jq '.[0] | select(.status == "completed" and .conclusion == "success") | .conclusion' \
-             2>/dev/null | grep -q success; then
-          report "$(say rejected "no successful CI run for $rev")"; continue
+        if ! curl -fsS -H "Authorization: token $ftoken" \
+             "$forgejo/api/v1/repos/$forgejo_repo/actions/tasks?limit=50" \
+             | jq -e --arg sha "$rev" \
+                 'any(.workflow_runs[]?; .head_sha == $sha and .status == "success")' >/dev/null; then
+          report "$(say rejected "no successful Forgejo Actions run for $rev")"; continue
         fi
 
         report "$(say running "building $host at $rev")"
