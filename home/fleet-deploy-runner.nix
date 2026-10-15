@@ -18,7 +18,9 @@
   clan = inputs.clan-core.packages.${pkgs.stdenv.hostPlatform.system}.clan-cli;
   runner = pkgs.writeShellApplication {
     name = "fleet-deploy-runner";
-    runtimeInputs = with pkgs; [curl jq libsecret git gh nix coreutils gnugrep sudo clan];
+    # NOTE: no pkgs.sudo here. A store copy is not setuid and shadows the real
+    # /run/wrappers/bin/sudo on PATH, which is what makes `sudo -n` work.
+    runtimeInputs = with pkgs; [curl jq libsecret git gh nix coreutils gnugrep clan];
     # SC2024 warns that `sudo` does not affect a redirect. That is exactly what is wanted here: the
     # activation log should be written by the user's own shell, not by root.
     excludeShellChecks = ["SC2024"];
