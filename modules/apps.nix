@@ -27,6 +27,11 @@
         ALLOW_ONLY_EXTERNAL_REGISTRATION = true;
         NO_REPLY_ADDRESS = "noreply.daze.lol";
       };
+      # On every ratlogin sign-in, take the avatar from the OIDC `picture` claim. ratlogin emits it
+      # from the account's Bluesky profile, so the Forgejo picture follows Bluesky at each login.
+      oauth2_client = {
+        UPDATE_AVATAR = true;
+      };
     };
   };
 
