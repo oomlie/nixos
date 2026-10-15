@@ -28,7 +28,7 @@
     clients = [
       {
         id = "forgejo";
-        redirectUris = ["https://code.daze.lol/user/oauth2/ratlogin/callback"];
+        redirectUris = ["https://git.daze.lol/user/oauth2/ratlogin/callback"];
         secretFile = config.sops.secrets."oidc/forgejo".path;
         group = "forgejo";
       }

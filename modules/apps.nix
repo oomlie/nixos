@@ -13,12 +13,17 @@
     lfs.enable = true;
     settings = {
       server = {
-        DOMAIN = "code.daze.lol";
-        ROOT_URL = "https://code.daze.lol/";
+        DOMAIN = "git.daze.lol";
+        ROOT_URL = "https://git.daze.lol/";
         HTTP_ADDR = "127.0.0.1";
         HTTP_PORT = 3001;
+        # Port 22 is not reachable through the Cloudflare proxy; clone over HTTPS.
+        DISABLE_SSH = true;
       };
-      service.DISABLE_REGISTRATION = true;
+      service = {
+        DISABLE_REGISTRATION = true;
+        NO_REPLY_ADDRESS = "noreply.daze.lol";
+      };
     };
   };
 

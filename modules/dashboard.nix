@@ -101,7 +101,7 @@
           {
             Code = {
               icon = "mdi-source-repository";
-              href = "https://code.daze.lol/";
+              href = "https://git.daze.lol/";
               description = "Forgejo git hosting";
             };
           }

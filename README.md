@@ -68,7 +68,7 @@ halo over Mycelium.
 | `cdn.daze.lol` | Garage S3 (Hold blob downloads) | internal |
 | `knot.daze.lol` | Tangled knot (git) | Tangled DID |
 | `spindle.daze.lol` | Tangled spindle (CI) | Tangled DID |
-| `code.daze.lol` | Forgejo | ratlogin (OIDC) |
+| `git.daze.lol` | Forgejo | ratlogin (OIDC) |
 | `tasks.daze.lol` | Vikunja | ratlogin (OIDC) |
 | `game.daze.lol` | RomM ROM library and web emulator | ratlogin (OIDC) |
 | `yt.daze.lol` | Invidious *(misty)* | ratlogin (OIDC) |

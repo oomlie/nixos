@@ -75,8 +75,13 @@ in {
       "https://auth.daze.lol" = {
         extraConfig = proxy "127.0.0.1" 9411;
       };
-      "https://code.daze.lol" = {
+      "https://git.daze.lol" = {
         extraConfig = proxy "127.0.0.1" 3001;
+      };
+      "https://code.daze.lol" = {
+        extraConfig = ''
+          redir https://git.daze.lol{uri} permanent
+        '';
       };
       "https://tasks.daze.lol" = {
         extraConfig = proxy "127.0.0.1" 3456;
