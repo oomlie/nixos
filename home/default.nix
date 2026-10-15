@@ -135,6 +135,7 @@ in {
     ./cloudflare-backup.nix
     ./fleet-status-collector.nix
     ./fleet-deploy-runner.nix
+    ./context-docs-sync.nix
     ./noctalia.nix
     ./opencode.nix
     ./qutebrowser.nix
