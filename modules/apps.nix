@@ -22,6 +22,9 @@
       };
       service = {
         DISABLE_REGISTRATION = true;
+        # Local sign-up stays off, but a first ratlogin sign-in may create the account, so the
+        # forgejo OIDC client can link molly.computer identities without opening public registration.
+        ALLOW_ONLY_EXTERNAL_REGISTRATION = true;
         NO_REPLY_ADDRESS = "noreply.daze.lol";
       };
     };
